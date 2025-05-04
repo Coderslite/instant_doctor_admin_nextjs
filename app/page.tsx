@@ -1,103 +1,162 @@
-import Image from "next/image";
+import Link from "next/link";
+import { MdOutlineDoNotDisturbOff, MdProductionQuantityLimits } from "react-icons/md";
+import { RiLogoutCircleRLine } from "react-icons/ri";
 
-export default function Home() {
+// app/page.tsx (or your home page)
+const Home = () => {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="mt-1">
+      <h1 className="text-2xl font-bold mb-4 text-center dark:text-white uppercase">Dashboard</h1>
+      <div className="grid lg:grid-cols-3 grid-cols-1 mt-10 md:gap-10 gap-4">
+        <div className="bg-blue h-[150px] rounded-2xl text-white">
+          <div className="flex justify-between h-full p-4">
+            <div className="flex gap-2">
+              <div className="bg-white p-1 w-[50px] h-[50px] rounded-4xl items-center justify-center flex">
+                <MdProductionQuantityLimits className="text-black text-2xl" />
+              </div>
+              <div>
+                <p className="text-[14px]">Active Stocks</p>
+                <h4 className="font-extrabold mt-2 text-2xl">2,000</h4>
+              </div>
+            </div>
+            <div className="flex items-end">
+              <div className="flex justify-center items-center gap-2">
+                <Link href='' className="underline">View all</Link>
+                <RiLogoutCircleRLine />
+              </div>
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <div className="bg-pink h-[150px] rounded-2xl text-white">
+          <div className="flex justify-between h-full p-4">
+            <div className="flex gap-2">
+              <div className="bg-white p-1 w-[50px] h-[50px] rounded-4xl items-center justify-center flex">
+                <MdProductionQuantityLimits className="text-black text-2xl" />
+              </div>
+              <div>
+                <p className="text-[14px]">Pending Orders</p>
+                <h4 className="font-extrabold mt-2 text-2xl">2,000</h4>
+              </div>
+            </div>
+            <div className="flex items-end">
+              <div className="flex justify-center items-center gap-2">
+                <Link href='' className="underline">View all</Link>
+                <RiLogoutCircleRLine />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="bg-dark-green h-[150px] rounded-2xl text-white">
+          <div className="flex justify-between h-full p-4">
+            <div className="flex gap-2">
+              <div className="bg-white p-1 w-[50px] h-[50px] rounded-4xl items-center justify-center flex">
+                <MdProductionQuantityLimits className="text-black text-2xl" />
+              </div>
+              <div>
+                <p className="text-[14px]">Delivered</p>
+                <h4 className="font-extrabold mt-2 text-2xl">2,000</h4>
+              </div>
+            </div>
+            <div className="flex items-end">
+              <div className="flex justify-center items-center gap-2">
+                <Link href='' className="underline">View all</Link>
+                <RiLogoutCircleRLine />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="bg-green h-[150px] rounded-2xl text-white">
+          <div className="flex justify-between h-full p-4">
+            <div className="flex gap-2">
+              <div className="bg-white p-1 w-[50px] h-[50px] rounded-4xl items-center justify-center flex">
+                <MdOutlineDoNotDisturbOff className="text-black text-2xl" />
+              </div>
+              <div>
+                <p className="text-[14px]">Disabled Products</p>
+                <h4 className="font-extrabold mt-2 text-2xl">2,000</h4>
+              </div>
+            </div>
+            <div className="flex items-end">
+              <div className="flex justify-center items-center gap-2">
+                <Link href='' className="underline">View all</Link>
+                <RiLogoutCircleRLine />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="bg-red-900 h-[150px] rounded-2xl text-white">
+          <div className="flex justify-between h-full p-4">
+            <div className="flex gap-2">
+              <div className="bg-white p-1 w-[50px] h-[50px] rounded-4xl items-center justify-center flex">
+                <MdOutlineDoNotDisturbOff className="text-black text-2xl" />
+              </div>
+              <div>
+                <p className="text-[14px]">Out of stock</p>
+                <h4 className="font-extrabold mt-2 text-2xl">2,000</h4>
+              </div>
+            </div>
+            <div className="flex items-end">
+              <div className="flex justify-center items-center gap-2">
+                <Link href='' className="underline">View all</Link>
+                <RiLogoutCircleRLine />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div className="relative md:w-full w-[100vw] overflow-x-auto mt-10">
+        <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+          <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+            <tr>
+              <th scope="col" className="px-6 py-3">
+                Product name
+              </th>
+              <th scope="col" className="px-6 py-3">
+                Status
+              </th>
+              <th scope="col" className="px-6 py-3">
+                Product Price
+              </th>
+              <th scope="col" className="px-6 py-3">
+                Date
+              </th>
+              <th scope="col" className="px-6 py-3">
+                Order Id
+              </th>
+              <th scope="col" className="px-6 py-3">
+                Action
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
+              <td className="px-6 py-4">
+                <b>Paracetamol</b>
+              </td>
+              <td className="px-6 py-4">
+                Pending
+              </td>
+              <td className="px-6 py-4">
+                <b>NGN2,000</b>
+              </td>
+              <td className="px-6 py-4">
+                25th-April-2025
+              </td>
+              <td className="px-6 py-4">
+                3434343434
+              </td>
+              <td className="px-6 py-4">
+                <Link href="/stocks/active" className="btn bg-blue text-white px-5 py-2 pb-2 rounded-2xl">view</Link>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
     </div>
   );
-}
+};
+
+export default Home;
