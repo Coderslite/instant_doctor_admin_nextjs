@@ -11,6 +11,7 @@ export interface OrderModel {
     items: ItemModel[];
     status: 'pending' | 'confirmed' | 'delivering' | 'completed';
     deliveryFee?: number;
+    address:string;
 }
 
 

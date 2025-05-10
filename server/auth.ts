@@ -1,6 +1,16 @@
 import { db } from '@/firebase/clientApp'
 import { collection, getDocs, getFirestore, query, where } from 'firebase/firestore'
 
+
+export function getPharmacyId(): string {
+    if (typeof window === 'undefined') return ''; // SSR guard
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; pharmacyId=`);
+    if (parts.length === 2) return parts.pop()!.split(';').shift()!;
+    return '';
+}
+
+
 export async function POST(request: Request) {
     const { email, password } = await request.json()
 

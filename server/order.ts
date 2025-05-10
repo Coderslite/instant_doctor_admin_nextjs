@@ -46,7 +46,8 @@ async function getAllOrdersLimitFive(): Promise<OrderModel[]> {
                 quantity: item.quantity || 1
             } as ItemModel)) || [],
             status: data.status || 'pending',
-            deliveryFee: data.deliveryFee || 0
+            deliveryFee: data.deliveryFee || 0,
+            address: data.address,
         };
 
         return order;
@@ -55,21 +56,47 @@ async function getAllOrdersLimitFive(): Promise<OrderModel[]> {
     return orders;
 }
 
+export async function getOrdersForStaticGeneration(pharmacyId: string): Promise<{ id: string }[]> {
+    const q = query(
+        orderCol,
+        where('pharmacyId', '==', pharmacyId),
+        limit(20) // Adjust based on your needs
+    );
 
-async function getOrderById(id: string) {
-    const pharmacyId = getPharmacyId();
-    const orderRef = doc(orderCol, id);
-    const orderSnap = await getDoc(orderRef);
-
-    if (orderSnap.exists()) {
-        const order = orderSnap.data();
-        if (order.pharmacyId !== pharmacyId) {
-            return undefined;
-        }
-        return order;
-    }
-    return undefined;
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id }));
 }
+
+async function getOrderById(id: string): Promise<OrderModel | undefined> {
+    const docRef = doc(orderCol, id);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) return undefined;
+
+    const data = docSnap.data();
+
+    return {
+        id: docSnap.id,
+        name: data.name || '',
+        totalAmount: data.totalAmount || 0,
+        createdAt: data.createdAt || Timestamp.now(),
+        remaining: data.remaining || '',
+        pharmacyId: data.pharmacyId || '',
+        userId: data.userId || '',
+        items: data.items?.map((item: any) => ({
+            amount: item.amount || 0,
+            id: item.id || '',
+            images: item.images || [],
+            name: item.name || '',
+            pharmacyId: item.pharmacyId || '',
+            quantity: item.quantity || 1
+        } as ItemModel)) || [],
+        status: data.status || 'pending',
+        deliveryFee: data.deliveryFee || 0,
+        address: data.address || ''
+    };
+}
+
 
 async function getActiveOrdersCounts() {
     const pharmacyId = getPharmacyId();
