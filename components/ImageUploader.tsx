@@ -7,6 +7,7 @@ import Image from 'next/image';
 
 interface ImageUploaderProps {
   onImagesChange: (images: File[]) => void;
+  disabled: boolean,
 }
 
 const ImageUploader = ({ onImagesChange }: ImageUploaderProps) => {
@@ -18,14 +19,14 @@ const ImageUploader = ({ onImagesChange }: ImageUploaderProps) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files);
       const validFiles = newFiles.filter(file => file.type.startsWith('image/'));
-      
+
       if (validFiles.length + files.length > 5) {
         alert('You can upload a maximum of 5 images');
         return;
       }
 
       const newPreviewImages = validFiles.map(file => URL.createObjectURL(file));
-      
+
       setFiles([...files, ...validFiles]);
       setPreviewImages([...previewImages, ...newPreviewImages]);
       onImagesChange([...files, ...validFiles]);
@@ -35,10 +36,10 @@ const ImageUploader = ({ onImagesChange }: ImageUploaderProps) => {
   const removeImage = (index: number) => {
     const newFiles = [...files];
     const newPreviewImages = [...previewImages];
-    
+
     newFiles.splice(index, 1);
     newPreviewImages.splice(index, 1);
-    
+
     setFiles(newFiles);
     setPreviewImages(newPreviewImages);
     onImagesChange(newFiles);
@@ -62,9 +63,9 @@ const ImageUploader = ({ onImagesChange }: ImageUploaderProps) => {
           </button>
         </div>
       ))}
-      
+
       {previewImages.length < 5 && (
-        <div 
+        <div
           className="h-[100px] w-[100px] bg-gray-200 rounded-lg flex justify-center items-center cursor-pointer"
           onClick={() => fileInputRef.current?.click()}
         >

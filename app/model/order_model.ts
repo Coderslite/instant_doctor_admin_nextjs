@@ -11,14 +11,14 @@ export interface OrderModel {
     items: ItemModel[];
     status: 'pending' | 'confirmed' | 'delivering' | 'completed';
     deliveryFee?: number;
-    address:string;
+    address: string;
 }
 
 
 export interface ItemModel {
     amount: number;
     id: string;
-    images: [];
+    images: string[];
     name: string;
     pharmacyId: string;
     quantity: number;

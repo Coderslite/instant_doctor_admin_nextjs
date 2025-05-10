@@ -3,7 +3,7 @@ import { Timestamp } from "firebase/firestore";
 export interface DrugModel {
     id: string;
     name: string;
-    images: [];
+    images: string[];
     remaining: number;
     pharamcyId: string;
     description: string;

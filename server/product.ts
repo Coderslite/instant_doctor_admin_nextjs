@@ -1,4 +1,4 @@
-import { NewStockData, StockItem, UpdateStockData } from "@/app/model/drug_model";
+import { DrugCategory, DrugModel, NewStockData, StockItem, UpdateStockData } from "@/app/model/drug_model";
 import { db, storage } from "@/firebase/clientApp";
 import { addDoc, arrayRemove, arrayUnion, collection, doc, getDoc, getDocs, query, updateDoc, where } from "firebase/firestore";
 import { deleteObject, ref } from "firebase/storage";
@@ -18,7 +18,7 @@ function getPharmacyId(): string {
 async function getProducts() {
     const pharmacyId = getPharmacyId();
     if (!pharmacyId) throw new Error('Not authenticated');
-    
+
     const q = query(drugCol, where('pharmacyId', '==', pharmacyId));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -29,33 +29,59 @@ async function getActiveStocks() {
     if (!pharmacyId) throw new Error('Not authenticated');
     console.log(pharmacyId);
     const q = query(
-        drugCol, 
+        drugCol,
         where('pharmacyId', '==', pharmacyId),
         where('remaining', '>=', 1)
     );
     const drugSnap = await getDocs(q);
-    return drugSnap.docs.map((doc) => doc.data());
+
+    const drugs: DrugModel[] = drugSnap.docs.map((doc) => {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            name: data.name,
+            images: data.images || [],
+            remaining: data.remaining,
+            pharamcyId: data.pharmacyId,
+            description: data.description,
+            amount: data.amount,
+            createdAt: data.createdAt,
+        };
+    });
+
+    return drugs;
 }
-
-
 async function getOutOfStocks() {
     const pharmacyId = getPharmacyId();
     if (!pharmacyId) throw new Error('Not authenticated');
     console.log(pharmacyId);
     const q = query(
-        drugCol, 
+        drugCol,
         where('pharmacyId', '==', pharmacyId),
         where('remaining', '==', 0)
     );
     const drugSnap = await getDocs(q);
-    return drugSnap.docs.map((doc) => doc.data());
+    const drugs: DrugModel[] = drugSnap.docs.map((doc) => {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            name: data.name,
+            images: data.images || [],
+            remaining: data.remaining,
+            pharamcyId: data.pharmacyId,
+            description: data.description,
+            amount: data.amount,
+            createdAt: data.createdAt,
+        };
+    });
+    return drugs;
 }
 
 
 async function getOutOfStockStocks() {
     const pharmacyId = getPharmacyId();
     if (!pharmacyId) throw new Error('Not authenticated');
-    
+
     const q = query(
         drugCol,
         where('pharmacyId', '==', pharmacyId),
@@ -68,7 +94,7 @@ async function getOutOfStockStocks() {
 async function newStock(data: NewStockData) {
     const pharmacyId = getPharmacyId();
     if (!pharmacyId) throw new Error('Not authenticated');
-    
+
     // Add pharmacyId to the new stock data
     const stockData = { ...data, pharmacyId };
     const res = await addDoc(drugCol, stockData);
@@ -78,19 +104,24 @@ async function newStock(data: NewStockData) {
     return docId;
 }
 
-async function getDrugCat() {
+async function getDrugCat(): Promise<DrugCategory[]> {
     const pharmacyId = getPharmacyId();
     if (!pharmacyId) throw new Error('Not authenticated');
-    
+
     const q = query(drugCatCol);
     const drugCatSnap = await getDocs(q);
-    return drugCatSnap.docs.map((cat) => cat.data());
+
+    return drugCatSnap.docs.map((doc) => ({
+        id: doc.id,
+        name: doc.data().name || '', // fallback to empty string if name is missing
+    }));
 }
+
 
 async function getStockById(id: string): Promise<StockItem | undefined> {
     const pharmacyId = getPharmacyId();
     if (!pharmacyId) throw new Error('Not authenticated');
-    
+
     const docRef = doc(db, 'Drugs', id);
     const docSnap = await getDoc(docRef);
 
@@ -108,22 +139,43 @@ async function getStockById(id: string): Promise<StockItem | undefined> {
 async function updateStock(id: string, data: UpdateStockData) {
     const pharmacyId = getPharmacyId();
     if (!pharmacyId) throw new Error('Not authenticated');
-    
+
     const docRef = doc(db, 'Drugs', id);
     const docSnap = await getDoc(docRef);
-    
-    // Verify ownership before updating
-    if (docSnap.exists() && docSnap.data().pharmacyId === pharmacyId) {
-        await updateDoc(docRef, data);
-    } else {
-        throw new Error('Stock not found or not owned by your pharmacy');
+
+    if (!docSnap.exists()) {
+        throw new Error('Stock not found');
     }
+
+    const stockData = docSnap.data();
+
+    // Check ownership
+    if (stockData.pharmacyId !== pharmacyId) {
+        throw new Error('You do not have permission to update this stock');
+    }
+
+    // Remove undefined fields
+    const cleanData = removeUndefined(data);
+
+    if (Object.keys(cleanData).length === 0) {
+        throw new Error('No valid fields to update');
+    }
+
+    await updateDoc(docRef, cleanData);
 }
+
+
+function removeUndefined<T extends object>(obj: T): Partial<T> {
+    return Object.fromEntries(
+        Object.entries(obj).filter(([_, v]) => v !== undefined)
+    ) as Partial<T>;
+}
+
 
 async function restockProduct(id: string, quantityToAdd: number) {
     const pharmacyId = getPharmacyId();
     if (!pharmacyId) throw new Error('Not authenticated');
-    
+
     const docRef = doc(db, 'Drugs', id);
     const docSnap = await getDoc(docRef);
 
@@ -143,7 +195,7 @@ async function restockProduct(id: string, quantityToAdd: number) {
 async function updateProductImages(id: string, newImages: string[], deletedImages: string[]) {
     const pharmacyId = getPharmacyId();
     if (!pharmacyId) throw new Error('Not authenticated');
-    
+
     const docRef = doc(db, 'Drugs', id);
     const docSnap = await getDoc(docRef);
 
@@ -173,15 +225,15 @@ async function updateProductImages(id: string, newImages: string[], deletedImage
     });
 }
 
-export { 
-    getProducts, 
-    getActiveStocks, 
+export {
+    getProducts,
+    getActiveStocks,
     getOutOfStocks,
-    getOutOfStockStocks, 
-    newStock, 
-    getDrugCat, 
-    getStockById, 
-    updateStock, 
-    restockProduct, 
-    updateProductImages 
+    getOutOfStockStocks,
+    newStock,
+    getDrugCat,
+    getStockById,
+    updateStock,
+    restockProduct,
+    updateProductImages
 };

@@ -75,7 +75,7 @@ async function getOrderById(id: string): Promise<OrderModel | undefined> {
 
     const data = docSnap.data();
 
-    
+
     return {
         id: docSnap.id,
         name: data.name || '',
