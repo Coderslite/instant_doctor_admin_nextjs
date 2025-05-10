@@ -1,16 +1,14 @@
 'use client';
 
 import { getStockById } from '@/server/product';
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import Image from 'next/image';
 import { RiArrowLeftLine } from 'react-icons/ri';
 import Link from 'next/link';
 import { use, useEffect, useState } from 'react';
 import RestockModal from '@/components/RestockModal';
 
-interface PageParams {
-    id: string;
-}
+
 interface StockItem {
     id: string;
     name: string;
@@ -96,9 +94,15 @@ const ImageGalleryModal = ({
     );
 };
 
-const StockDetailPage = ({ params }: { params: Promise<PageParams> }) => {
-    const { id } = use<PageParams>(params); // Explicitly type the use hook
+const StockDetailPage = () => {
+    const params = useParams();
+    const rawId = params?.id;
+    const id = Array.isArray(rawId) ? rawId[0] : rawId;
 
+    if (!id) {
+        // You can handle it however you prefer — redirect, throw, or show 404
+        notFound(); // From `next/navigation`
+    }
     const [stockItem, setStockItem] = useState<StockItem | null>(null);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -113,7 +117,7 @@ const StockDetailPage = ({ params }: { params: Promise<PageParams> }) => {
     useEffect(() => {
         const fetchStockItem = async () => {
             try {
-                const item = await getStockById((await params).id);
+                const item = await getStockById(id);
                 if (!item) {
                     notFound();
                 }
@@ -301,7 +305,7 @@ const StockDetailPage = ({ params }: { params: Promise<PageParams> }) => {
                     onRestockSuccess={() => {
                         // Refresh data
                         const fetchData = async () => {
-                            const item = await getStockById((await params).id);
+                            const item = await getStockById(id);
                             if (item) setStockItem(item);
                         };
                         fetchData();
