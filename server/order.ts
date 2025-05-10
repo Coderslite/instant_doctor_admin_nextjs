@@ -1,6 +1,6 @@
-import { OrderModel } from "@/app/model/order_model";
+import { ItemModel, OrderModel } from "@/app/model/order_model";
 import { db } from "@/firebase/clientApp";
-import { collection, doc, getDoc, getDocs, limit, orderBy, query, updateDoc, where } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, limit, orderBy, query, Timestamp, updateDoc, where } from "firebase/firestore";
 
 const orderCol = collection(db, "Orders");
 
@@ -13,18 +13,48 @@ function getPharmacyId(): string {
     return '';
 }
 
-async function getAllOrdersLimitFive() {
+async function getAllOrdersLimitFive(): Promise<OrderModel[]> {
     const pharmacyId = getPharmacyId();
     console.log(pharmacyId);
+
     const q = query(
         orderCol,
         where('pharmacyId', '==', pharmacyId),
         limit(5)
     );
+
     const snapSnapshot = await getDocs(q);
-    const orders = snapSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+    const orders = snapSnapshot.docs.map((doc) => {
+        const data = doc.data();
+
+        // Explicitly map to OrderModel with proper typing
+        const order: OrderModel = {
+            id: doc.id,
+            name: data.name || '',
+            totalAmount: data.totalAmount || 0,
+            createdAt: data.createdAt || Timestamp.now(),
+            remaining: data.remaining || '',
+            pharmacyId: data.pharmacyId || pharmacyId,
+            userId: data.userId || '',
+            items: data.items?.map((item: any) => ({
+                amount: item.amount || 0,
+                id: item.id || '',
+                images: item.images || [],
+                name: item.name || '',
+                pharmacyId: item.pharmacyId || pharmacyId,
+                quantity: item.quantity || 1
+            } as ItemModel)) || [],
+            status: data.status || 'pending',
+            deliveryFee: data.deliveryFee || 0
+        };
+
+        return order;
+    });
+
     return orders;
 }
+
 
 async function getOrderById(id: string) {
     const pharmacyId = getPharmacyId();

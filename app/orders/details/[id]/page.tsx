@@ -8,10 +8,11 @@ import { Timestamp } from 'firebase/firestore';
 import Image from 'next/image';
 import { notFound, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { FiArrowLeft, FiCheck, FiCheckCircle, FiClock, FiMapPin, FiPackage, FiTruck, FiUser } from 'react-icons/fi';
+import { FiArrowLeft, FiCheck, FiClock, FiMapPin, FiPackage, FiTruck, FiUser } from 'react-icons/fi';
 
 interface OrderDetailsProps {
     params: { id: string };
+    searchParams?: { [key: string]: string | string[] | undefined };
 }
 
 const OrderDetails = ({ params }: OrderDetailsProps) => {
