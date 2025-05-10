@@ -1,28 +1,110 @@
-import Image from 'next/image'
-import Link from 'next/link'
-import React from 'react'
+'use client'
+import React, { useEffect, useState } from 'react'
 import { IoSearchOutline } from 'react-icons/io5'
+import { getPendingOrders } from '@/server/order'
+import { Timestamp } from 'firebase/firestore'
+import Link from 'next/link'
+import { FiClock, FiEye, FiAlertCircle } from 'react-icons/fi'
+
+interface OrderItem {
+    id: string
+    name: string
+    amount: number
+    quantity: number
+}
+
+interface Order {
+    id: string
+    items: OrderItem[]
+    status: string
+    totalAmount: number
+    createdAt: Timestamp
+    userId: string
+}
 
 const PendingOrders = () => {
+    const [orders, setOrders] = useState<Order[]>([])
+    const [loading, setLoading] = useState(true)
+    const [searchTerm, setSearchTerm] = useState('')
+
+    useEffect(() => {
+        const fetchOrders = async () => {
+            try {
+                setLoading(true)
+                const pendingOrders = await getPendingOrders()
+                setOrders(pendingOrders)
+            } catch (error) {
+                console.error('Error fetching orders:', error)
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchOrders()
+    }, [])
+
+    const formatDate = (timestamp: Timestamp) => {
+        const date = new Date(timestamp.seconds * 1000)
+        const now = new Date()
+
+        // If today, show time
+        if (date.toDateString() === now.toDateString()) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }
+
+        // If yesterday, show "Yesterday"
+        const yesterday = new Date(now)
+        yesterday.setDate(yesterday.getDate() - 1)
+        if (date.toDateString() === yesterday.toDateString()) {
+            return 'Yesterday'
+        }
+
+        // Otherwise show full date
+        return date.toLocaleDateString()
+    }
+
+    const filteredOrders = orders.filter(order => {
+        const searchLower = searchTerm.toLowerCase()
+        return (
+            order.id.toLowerCase().includes(searchLower) ||
+            order.totalAmount.toString().includes(searchLower) ||
+            formatDate(order.createdAt).toLowerCase().includes(searchLower) ||
+            order.items.some(item => item.name.toLowerCase().includes(searchLower))
+        )
+    })
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+        )
+    }
+
     return (
-        <div>
+        <div className="p-4">
             <h4 className='text-3xl font-bold text-center mb-5 uppercase'>Pending Orders</h4>
-            <div className="flex justify-center gap-2 md:flex-row flex-col">
-                <form className="w-full">
-                    <div className="relative">
-                        <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                            <IoSearchOutline />
-                        </div>
-                        <input type="search" id="default-search" className="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Search anything on Transactions" required />
+
+            <div className="flex justify-center gap-2 md:flex-row flex-col mb-6">
+                <div className="relative w-full max-w-2xl">
+                    <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                        <IoSearchOutline />
                     </div>
-                </form>
+                    <input
+                        type="search"
+                        className="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Search by product, order ID, amount, or date"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
             </div>
 
-            <div className="w-full overflow-x-auto mt-5">
-                <table className="min-w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                    <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+            <div className="w-full overflow-x-auto">
+                <table className="min-w-full text-sm text-left text-gray-500">
+                    <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                         <tr>
-                            <th scope="col" className="px-4 py-3">Product name</th>
+                            <th scope="col" className="px-4 py-3">Product</th>
                             <th scope="col" className="px-4 py-3">Status</th>
                             <th scope="col" className="px-4 py-3">Amount</th>
                             <th scope="col" className="px-4 py-3">Date</th>
@@ -31,21 +113,41 @@ const PendingOrders = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
-                            <th scope="row" className="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                Apple MacBook Pro 17"
-                            </th>
-                            <td className="px-4 py-4"><span className='text-white bg-yellow-500 rounded-2xl px-8 pb1 py-1 text-xs'>Pending</span></td>
-                            <td className="px-4 py-4">$2999</td>
-                            <td className="px-4 py-4">Today</td>
-                            <td className="px-4 py-4">121212121</td>
-                            <td className="px-4 py-4"><button className='btn bg-blue text-white px-5 py-2 pb-2 rounded-2xl'>View</button></td>
-                        </tr>
+                        {filteredOrders.length === 0 ? (
+                            <tr className="bg-white border-b">
+                                <td colSpan={6} className="px-4 py-4 text-center">
+                                    {searchTerm ? 'No matching orders found' : 'No pending orders yet'}
+                                </td>
+                            </tr>
+                        ) : (
+                            filteredOrders.map((order) => (
+                                <tr key={order.id} className="bg-white border-b hover:bg-gray-50">
+                                    <td className="px-4 py-4 font-medium text-gray-900">
+                                        {order.items[0]?.name || 'N/A'}
+                                        {order.items.length > 1 && ` +${order.items.length - 1} more`}
+                                    </td>
+                                    <td className="px-4 py-4">
+                                        <span className='bg-yellow-100 text-yellow-800 rounded-full px-3 py-1 text-xs flex items-center w-fit'>
+                                            <FiAlertCircle className="mr-1" /> Pending
+                                        </span>
+                                    </td>
+                                    <td className="px-4 py-4">NGN{order.totalAmount.toLocaleString()}</td>
+                                    <td className="px-4 py-4">{formatDate(order.createdAt)}</td>
+                                    <td className="px-4 py-4 font-mono">{order.id.slice(0, 8)}</td>
+                                    <td className="px-4 py-4">
+                                        <Link
+                                            href={`/orders/details/${order.id}`}
+                                            className='inline-flex items-center bg-blue-500 text-white px-3 py-1 rounded-lg text-sm'
+                                        >
+                                            <FiEye className="mr-1" /> View
+                                        </Link>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
                     </tbody>
                 </table>
             </div>
-
-
         </div>
     )
 }

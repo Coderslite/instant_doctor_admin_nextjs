@@ -1,0 +1,152 @@
+import { OrderModel } from "@/app/model/order_model";
+import { db } from "@/firebase/clientApp";
+import { collection, doc, getDoc, getDocs, limit, orderBy, query, updateDoc, where } from "firebase/firestore";
+
+const orderCol = collection(db, "Orders");
+
+// Helper function to get pharmacyId from cookies
+function getPharmacyId(): string {
+    if (typeof window === 'undefined') return ''; // SSR guard
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; pharmacyId=`);
+    if (parts.length === 2) return parts.pop()!.split(';').shift()!;
+    return '';
+}
+
+async function getAllOrdersLimitFive() {
+    const pharmacyId = getPharmacyId();
+    console.log(pharmacyId);
+    const q = query(
+        orderCol,
+        where('pharmacyId', '==', pharmacyId),
+        limit(5)
+    );
+    const snapSnapshot = await getDocs(q);
+    const orders = snapSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    return orders;
+}
+
+async function getOrderById(id: string) {
+    const pharmacyId = getPharmacyId();
+    const orderRef = doc(orderCol, id);
+    const orderSnap = await getDoc(orderRef);
+
+    if (orderSnap.exists()) {
+        const order = orderSnap.data();
+        if (order.pharmacyId !== pharmacyId) {
+            return undefined;
+        }
+        return order;
+    }
+    return undefined;
+}
+
+async function getActiveOrdersCounts() {
+    const pharmacyId = getPharmacyId();
+    const q = query(
+        orderCol,
+        where("pharmacyId", "==", pharmacyId),
+        where("status", '!=', 'pending'),
+        where("status", "in", ["confirmed", "delivering"])
+    );
+    const snapSnapshot = await getDocs(q);
+    return snapSnapshot.size;
+}
+
+async function getPendingOrdersCounts() {
+    const pharmacyId = getPharmacyId();
+    const q = query(
+        orderCol,
+        where("pharmacyId", "==", pharmacyId),
+        where("status", "==", 'pending'),
+        limit(5)
+    );
+    const snapSnapshot = await getDocs(q);
+    return snapSnapshot.size;
+}
+
+async function getCompletedOrdersCounts() {
+    const pharmacyId = getPharmacyId();
+    const q = query(
+        orderCol,
+        where("pharmacyId", "==", pharmacyId),
+        where("status", "==", 'completed'),
+    );
+    const snapSnapshot = await getDocs(q);
+    return snapSnapshot.size;
+}
+
+async function updateOrderStatusInFirestore(orderId: string, newStatus: string) {
+    const pharmacyId = getPharmacyId();
+    const orderRef = doc(db, 'Orders', orderId);
+    const orderSnap = await getDoc(orderRef);
+
+    if (orderSnap.exists() && orderSnap.data().pharmacyId === pharmacyId) {
+        await updateDoc(orderRef, {
+            status: newStatus,
+            updatedAt: new Date()
+        });
+        return true;
+    }
+    return false;
+}
+
+async function getDeliveredOrders() {
+    const pharmacyId = getPharmacyId();
+    const q = query(
+        orderCol,
+        where('pharmacyId', '==', pharmacyId),
+        where('status', '==', 'completed'),
+        orderBy('createdAt', 'desc')
+    );
+
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    })) as OrderModel[];
+}
+
+async function getPendingOrders() {
+    const pharmacyId = getPharmacyId();
+    const q = query(
+        orderCol,
+        where('pharmacyId', '==', pharmacyId),
+        where('status', '==', 'pending'),
+        orderBy('createdAt', 'desc')
+    );
+
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    })) as OrderModel[];
+}
+
+async function getCancelledOrders() {
+    const pharmacyId = getPharmacyId();
+    const q = query(
+        orderCol,
+        where('pharmacyId', '==', pharmacyId),
+        where('status', '==', 'cancelled'),
+        orderBy('createdAt', 'desc')
+    );
+
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    })) as OrderModel[];
+}
+
+export {
+    getAllOrdersLimitFive,
+    getActiveOrdersCounts,
+    getPendingOrdersCounts,
+    getCompletedOrdersCounts,
+    getOrderById,
+    updateOrderStatusInFirestore,
+    getDeliveredOrders,
+    getPendingOrders,
+    getCancelledOrders
+};

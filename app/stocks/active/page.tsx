@@ -1,87 +1,209 @@
-import Image from 'next/image'
-import Link from 'next/link'
-import React from 'react'
-import { IoSearchOutline } from 'react-icons/io5'
+'use client';
 
-const drugs = [
-  {
-    id: 1,
-    name: 'Paracetamol',
-    detail: 'Pain relief',
-    units: 332,
-    image: '/drug.png'
-  },
-  {
-    id: 2,
-    name: 'Amoxicillin',
-    detail: 'Antibiotic',
-    units: 120,
-    image: '/drug.png'
-  },
-  // Add more drug objects as needed
-];
+import { DrugModel } from '@/app/model/drug_model';
+import { getActiveStocks } from '@/server/product';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { IoSearchOutline } from 'react-icons/io5';
+import { useRouter } from 'next/navigation';
+
+const ITEMS_PER_PAGE = 9;
 
 const ActiveStock = () => {
+  const [drugs, setDrugs] = useState<DrugModel[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchDrugs = async () => {
+      try {
+        setLoading(true);
+        const data = await getActiveStocks();
+        console.log(data);
+        setDrugs(data);
+      } catch (error) {
+        console.error('Error fetching drugs:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDrugs();
+  }, []);
+
+  // Filter drugs based on search term
+  const filteredDrugs = drugs.filter(drug =>
+    drug.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    drug.description?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredDrugs.length / ITEMS_PER_PAGE);
+  const currentItems = filteredDrugs.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const navigateToDrugDetail = (id: string) => {
+    router.push(`/stocks/${id}`);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
   return (
-    <div>
+    <div className="p-4">
       <h4 className='text-2xl font-bold text-center mb-5 uppercase'>Active Stocks</h4>
-      <div className="flex md:justify-between gap-2 md:flex-row flex-col">
+
+      <div className="flex md:justify-between gap-2 md:flex-row flex-col mb-6">
         <form className="md:w-1/2 w-full">
           <div className="relative">
             <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
               <IoSearchOutline />
             </div>
-            <input type="search" id="default-search" className="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Search anything on Transactions" required />
+            <input
+              type="search"
+              id="default-search"
+              className="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Search drugs by name or description"
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1); // Reset to first page when searching
+              }}
+            />
           </div>
         </form>
-        <div className='md:justify-start justify-end md:flex-col md:mr-0 mr-5  flex md:w-fit w-full'>
-          <Link href="new-stock" className='btn bg-blue text-white rounded-2xl px-10 p-2'>Add Stock</Link>
+        <div className='md:justify-start justify-end md:flex-col flex md:w-fit w-full'>
+          <Link href="/stocks/new-stock" className='btn bg-blue text-white rounded-2xl px-10 p-2 hover:bg-blue-600 transition'>
+            Add Stock
+          </Link>
         </div>
       </div>
 
-      <div className='grid md:grid-cols-5 grid-cols-1 gap-4 mt-5'>
-        {drugs.map((drug) => (
-          <div key={drug.id} className='bg-gray rounded-2xl flex flex-col justify-between items-center p-2'>
-            <div className='bg-white text-black p-2 rounded-2xl'>
-              <h5>{drug.units} units available</h5>
-            </div>
-            <Image src={drug.image} height={150} width={100} alt={drug.name} />
-            <p className='text-2xl font-extrabold'>{drug.name}</p>
-            <p className='font-medium'>{drug.detail}</p>
+      {currentItems.length === 0 ? (
+        <div className="text-center py-10">
+          <p className="text-lg">No active stocks found</p>
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="mt-2 text-blue-500 hover:underline"
+            >
+              Clear search
+            </button>
+          )}
+        </div>
+      ) : (
+        <>
+          <div className='grid md:grid-cols-4 grid-cols-1 gap-4'>
+            {currentItems.map((drug) => (
+              <div
+                key={drug.id}
+                className='bg-gray-100 rounded-2xl flex flex-col justify-between items-center p-4 hover:shadow-md transition cursor-pointer'
+                onClick={() => navigateToDrugDetail(drug.id)}
+              >
+                <div className='bg-white text-black px-3 py-1 rounded-2xl mb-2 w-full text-center'>
+                  <span className='font-medium'>{drug.remaining} units available</span>
+                </div>
+                <div className="relative h-32 w-full mb-3">
+                  {drug.images?.length > 0 ? (
+                    <Image
+                      src={drug.images[0]}
+                      alt={drug.name}
+                      fill
+                      className="object-contain"
+                    />
+                  ) : (
+                    <div className="h-full w-full bg-gray-200 flex items-center justify-center">
+                      <span className="text-gray-500">No Image</span>
+                    </div>
+                  )}
+                </div>
+                <h3 className='text-lg font-bold text-center mt-2'>{drug.name}</h3>
+                <p className='text-sm text-gray-600 text-center line-clamp-2 mt-1'>
+                  {drug.description || 'No description available'}
+                </p>
+                <button
+                  className="mt-3 text-blue-500 text-sm hover:underline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigateToDrugDetail(drug.id);
+                  }}
+                >
+                  View Details
+                </button>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      <div className='mt-5 w-full flex justify-center'>
-        <nav aria-label="Page navigation example w-full">
-          <ul className="inline-flex -space-x-px text-base h-10">
-            <li>
-              <a href="#" className="flex items-center justify-center px-4 h-10 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">Previous</a>
-            </li>
-            <li>
-              <a href="#" className="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">1</a>
-            </li>
-            <li>
-              <a href="#" className="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">2</a>
-            </li>
-            <li>
-              <a href="#" aria-current="page" className="flex items-center justify-center px-4 h-10 text-primary border border-gray-300 bg-blue-50 hover:bg-blue-100 hover:text-primary dark:border-gray-700 dark:bg-gray-700 dark:text-white">3</a>
-            </li>
-            <li>
-              <a href="#" className="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">4</a>
-            </li>
-            <li>
-              <a href="#" className="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">5</a>
-            </li>
-            <li>
-              <a href="#" className="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">Next</a>
-            </li>
-          </ul>
-        </nav>
-      </div>
+          {totalPages > 1 && (
+            <div className='mt-8 flex justify-center'>
+              <nav aria-label="Pagination">
+                <ul className="inline-flex -space-x-px">
+                  <li>
+                    <button
+                      onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1}
+                      className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-s-lg hover:bg-gray-100 disabled:opacity-50"
+                    >
+                      Previous
+                    </button>
+                  </li>
 
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+
+                    return (
+                      <li key={pageNum}>
+                        <button
+                          onClick={() => handlePageChange(pageNum)}
+                          className={`flex items-center justify-center px-3 h-8 leading-tight border border-gray-300 ${currentPage === pageNum ? 'bg-blue-50 text-blue-600' : 'bg-white text-gray-500 hover:bg-gray-100'}`}
+                        >
+                          {pageNum}
+                        </button>
+                      </li>
+                    );
+                  })}
+
+                  <li>
+                    <button
+                      onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                      disabled={currentPage === totalPages}
+                      className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 disabled:opacity-50"
+                    >
+                      Next
+                    </button>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+          )}
+        </>
+      )}
     </div>
-  )
-}
+  );
+};
 
-export default ActiveStock
+export default ActiveStock;

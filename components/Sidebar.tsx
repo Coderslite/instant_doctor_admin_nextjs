@@ -2,16 +2,40 @@
 import Image from 'next/image'
 import Link from 'next/link';
 import React, { useState } from 'react'
-import { AiOutlineMenu, AiOutlineProduct } from "react-icons/ai";
-import { CgProfile } from 'react-icons/cg';
-import { MdDashboard, MdKeyboardArrowDown, MdProductionQuantityLimits } from 'react-icons/md';
+import {
+    AiOutlineMenu,
+    AiOutlineHome,
+    AiOutlineShopping,
+    AiOutlineStock
+} from "react-icons/ai";
+import {
+    FiPackage,
+    FiTruck,
+    FiXCircle,
+    FiCheckCircle,
+    FiUser,
+    FiLogOut
+} from 'react-icons/fi';
+import {
+    MdDashboard,
+    MdKeyboardArrowDown,
+    MdInventory,
+    MdOutlineInventory2,
+    MdOutlineDisabledByDefault
+} from 'react-icons/md';
+import {
+    BsBoxSeam,
+    BsClockHistory
+} from 'react-icons/bs';
+import toast from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
 const Sidebar = () => {
     const [isStockOpen, setIsStockOpen] = useState(false);
     const [isOrderOpen, setIsOrderOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [isMobileSidebarVisible, setIsMobileSidebarVisible] = useState(false);
-
+    const router = useRouter()
     const toggleSidebar = () => {
         if (window.innerWidth < 768) {
             setIsMobileSidebarVisible(!isMobileSidebarVisible);
@@ -31,6 +55,23 @@ const Sidebar = () => {
             {children}
         </Link>
     );
+
+    const handleLogout = () => {
+        // Clear cookies
+        document.cookie = 'pharmacyId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        document.cookie = 'pharmacyName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+
+        // Show success message
+        toast.success('Logged out successfully');
+
+        // Redirect to login page
+        router.push('/login');
+
+        // Close mobile sidebar if open
+        if (window.innerWidth < 768) {
+            setIsMobileSidebarVisible(false);
+        }
+    };
 
     return (
         <>
@@ -74,7 +115,7 @@ const Sidebar = () => {
                                 <div className=' hover:bg-primary rounded-lg '>
                                     <NavLink href="/">
                                         <div className='flex gap-2 items-center p-2'>
-                                            <MdDashboard />
+                                            <AiOutlineHome className="text-xl" />
                                             {isSidebarOpen && <span>Dashboard</span>}
                                         </div>
                                     </NavLink>
@@ -88,7 +129,7 @@ const Sidebar = () => {
                                     onClick={() => setIsStockOpen(!isStockOpen)}
                                     className="flex p-2 items-center w-full text-base transition duration-75 rounded-lg group hover:bg-primary"
                                 >
-                                    <AiOutlineProduct />
+                                    <MdInventory className="text-xl" />
                                     {isSidebarOpen && (
                                         <>
                                             <span className="flex-1 ms-3 text-left whitespace-nowrap">Stocks</span>
@@ -101,7 +142,8 @@ const Sidebar = () => {
                                         <li>
                                             <NavLink href="/stocks/active">
                                                 <div className="block pl-11 hover:bg-primary p-1 rounded-sm border-black/10 border-b-2">
-                                                    <div className='flex gap-2'><MdProductionQuantityLimits className="text-black text-2xl" />
+                                                    <div className='flex gap-2'>
+                                                        <MdOutlineInventory2 className="text-xl" />
                                                         <span>Active Stock</span>
                                                     </div>
                                                 </div>
@@ -110,21 +152,23 @@ const Sidebar = () => {
                                         <li>
                                             <NavLink href="/stocks/out-of-stock">
                                                 <div className="block pl-11 hover:bg-primary p-1 rounded-sm border-black/10 border-b-2">
-                                                    <div className='flex gap-2'><MdProductionQuantityLimits className="text-black text-2xl" />
+                                                    <div className='flex gap-2'>
+                                                        <AiOutlineStock className="text-xl" />
                                                         <span>Out of Stock</span>
                                                     </div>
                                                 </div>
                                             </NavLink>
                                         </li>
-                                        <li>
+                                        {/* <li>
                                             <NavLink href="/stocks/disabled">
                                                 <div className="block pl-11 hover:bg-primary p-1 rounded-sm border-black/10">
-                                                    <div className='flex gap-2'><MdProductionQuantityLimits className="text-black text-2xl" />
+                                                    <div className='flex gap-2'>
+                                                        <MdOutlineDisabledByDefault className="text-xl" />
                                                         <span>Disabled Stock</span>
                                                     </div>
                                                 </div>
                                             </NavLink>
-                                        </li>
+                                        </li> */}
                                     </ul>
                                 )}
                             </li>
@@ -136,7 +180,7 @@ const Sidebar = () => {
                                     onClick={() => setIsOrderOpen(!isOrderOpen)}
                                     className="flex p-2 items-center w-full text-base transition duration-75 rounded-lg group hover:bg-primary"
                                 >
-                                    <AiOutlineProduct />
+                                    <AiOutlineShopping className="text-xl" />
                                     {isSidebarOpen && (
                                         <>
                                             <span className="flex-1 ms-3 text-left whitespace-nowrap">Orders</span>
@@ -149,7 +193,8 @@ const Sidebar = () => {
                                         <li>
                                             <NavLink href="/orders/delivered">
                                                 <div className="block pl-11 hover:bg-primary p-1 rounded-sm border-black/10 border-b-2">
-                                                    <div className='flex gap-2'><MdProductionQuantityLimits className="text-black text-2xl" />
+                                                    <div className='flex gap-2'>
+                                                        <FiTruck className="text-xl" />
                                                         <span>Delivered</span>
                                                     </div>
                                                 </div>
@@ -158,7 +203,8 @@ const Sidebar = () => {
                                         <li>
                                             <NavLink href="/orders/pending">
                                                 <div className="block pl-11 hover:bg-primary p-1 rounded-sm border-black/10 border-b-2">
-                                                    <div className='flex gap-2'><MdProductionQuantityLimits className="text-black text-2xl" />
+                                                    <div className='flex gap-2'>
+                                                        <BsClockHistory className="text-xl" />
                                                         <span>Pending</span>
                                                     </div>
                                                 </div>
@@ -167,7 +213,8 @@ const Sidebar = () => {
                                         <li>
                                             <NavLink href="/orders/cancelled">
                                                 <div className="block pl-11 hover:bg-primary p-1 rounded-sm border-black/10">
-                                                    <div className='flex gap-2'><MdProductionQuantityLimits className="text-black text-2xl" />
+                                                    <div className='flex gap-2'>
+                                                        <FiXCircle className="text-xl" />
                                                         <span>Cancelled</span>
                                                     </div>
                                                 </div>
@@ -181,14 +228,19 @@ const Sidebar = () => {
 
                     {/* Footer */}
                     <div className="footer mt-auto">
-                        <div className='flex gap-1 mb-3'>
-                            <CgProfile />
+                        <div className='flex gap-1 mb-3 items-center'>
+                            <FiUser className="text-xl" />
                             <a href="/profile" className='text-sm font-semibold'>Pharmacy Profile</a>
                         </div>
-                        <button className='bg-red-600 rounded p-2 text-white w-full'>
-                            {isSidebarOpen ? 'Logout' : <span className='text-center block'>🚪</span>}
+                        <button
+                            onClick={handleLogout}
+                            className='bg-red-600 rounded p-2 text-white w-full flex items-center justify-center gap-2 hover:bg-red-700 transition-colors'
+                        >
+                            <FiLogOut className="text-xl" />
+                            {isSidebarOpen && 'Logout'}
                         </button>
                     </div>
+
                 </div>
             </div>
         </>

@@ -1,26 +1,36 @@
-# on:
-#     push:
-#       branches:
-#         - main
+name: 🚀 Deploy Next.js to cPanel via FTP
 
-#   name: 🚀 Deploy website on push
-  
-#   jobs:
-#     web-deploy:
-#       name: 🎉 Deploy
-#       runs-on: ubuntu-latest
-#       steps:
-#       - name: 🚚 Get latest code
-#         uses: actions/checkout@v3
-  
-  
-#       - name: 📂 Sync files
-#         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-#         with:
-#           server: ${{ secrets.GIT_CPANEL_SERVER }}
-#           username: ${{ secrets.GIT_CPANEL_USER }}
-#           password: ${{ secrets.GIT_CPANEL_PWD }}
-#           protocol: ${{ secrets.GIT_CPANEL_PROTOCOL }}
-#           local-dir: ./ # Adjust this path according to your Nuxt.js build output
-#           server-dir: /
-  
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: 🎉 Build and Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 📦 Checkout code
+      uses: actions/checkout@v3
+
+    - name: 🧰 Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+
+    - name: 📥 Install dependencies
+      run: npm install
+
+    - name: 🛠️ Build project
+      run: npm run build && npm run export
+
+    - name: 📂 Upload via FTP
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: ${{ secrets.GIT_CPANEL_SERVER }}
+        username: ${{ secrets.GIT_CPANEL_USER }}
+        password: ${{ secrets.GIT_CPANEL_PWD }}
+        protocol: ${{ secrets.GIT_CPANEL_PROTOCOL }}
+        local-dir: ./out
+        server-dir: /public_html/ # adjust to your cPanel public folder
