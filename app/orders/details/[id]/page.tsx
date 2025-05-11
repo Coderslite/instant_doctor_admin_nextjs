@@ -84,23 +84,56 @@ const OrderDetails = () => {
             const statusMessages: Record<string, { title: string; body: string; type: string }> = {
                 confirmed: {
                     title: 'Order Confirmed',
-                    body: `Your order #${orderId.slice(0, 8)} has been confirmed`,
+                    body: `Your order #${order.trackingId} has been confirmed`,
                     type: 'order_confirmed'
                 },
                 delivering: {
                     title: 'On The Way',
-                    body: `Your order #${orderId.slice(0, 8)} is out for delivery`,
+                    body: `Your order #${order.trackingId} is out for delivery`,
                     type: 'order_delivering'
                 },
                 completed: {
                     title: 'Order Delivered',
-                    body: `Your order #${orderId.slice(0, 8)} has been delivered`,
+                    body: `Your order #${order.trackingId} has been delivered`,
                     type: 'order_completed'
                 }
             };
 
             const { title, body, type } = statusMessages[newStatus];
             await sendNotification(title, body, type);
+
+            if (!user) {
+                console.error('User not found');
+                alert('Cannot send email: user info is missing');
+                return;
+            }
+            // Send email here
+            const emailBody = {
+                email: user.email,
+                order_id: order.trackingId,
+                status_message: title,
+                customer_name: `${user.firstname} ${user.lastname}`,
+                subtotal: order.items.reduce((sum: number, item: ItemModel) => sum + item.amount * (item.quantity || 1), 0),
+                delivery_fee: order.deliveryFee || 0,
+                total: order.items.reduce((sum: number, item: ItemModel) => sum + item.amount * (item.quantity || 1), 0) + (order.deliveryFee || 0),
+                delivery_address: order.address,
+                tracking_link: "", // If available, else keep empty
+                items: order.items.map((item: ItemModel) => ({
+                    name: item.name,
+                    image: item.images[0] || '/default-product.png',
+                    quantity: item.quantity || 1,
+                    price: item.amount
+                })),
+                order_status: newStatus
+            };
+
+            await fetch('https://us-central1-instant-doctor-a4e4c.cloudfunctions.net/api/mail/order_update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(emailBody)
+            });
 
             alert(`Order marked as ${newStatus}`);
         } catch (err) {
@@ -110,6 +143,7 @@ const OrderDetails = () => {
             setUpdatingStatus(false);
         }
     };
+
 
     const formatDate = (timestamp: Timestamp) => {
         return new Date(timestamp.seconds * 1000).toLocaleString('en-US', {
@@ -145,7 +179,7 @@ const OrderDetails = () => {
                 <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white">
                     <div className="flex justify-between items-start">
                         <div>
-                            <h1 className="text-2xl font-bold">Order #{orderId.slice(0, 8).toUpperCase()}</h1>
+                            <h1 className="text-2xl font-bold">Order #{order.trackingId.toUpperCase()}</h1>
                             <div className="flex items-center mt-2">
                                 <FiClock className="mr-2" />
                                 <span>{formatDate(order.createdAt)}</span>

@@ -37,6 +37,7 @@ async function getAllOrdersLimitFive(): Promise<OrderModel[]> {
             remaining: data.remaining || '',
             pharmacyId: data.pharmacyId || pharmacyId,
             userId: data.userId || '',
+            trackingId: data.trackingId || '',
             items: data.items?.map((item: any) => ({
                 amount: item.amount || 0,
                 id: item.id || '',
@@ -84,6 +85,7 @@ async function getOrderById(id: string): Promise<OrderModel | undefined> {
         remaining: data.remaining || '',
         pharmacyId: data.pharmacyId || '',
         userId: data.userId || '',
+        trackingId: data.trackingId || '',
         items: data.items?.map((item: any) => ({
             amount: item.amount || 0,
             id: item.id || '',

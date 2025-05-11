@@ -2,6 +2,7 @@ import { Timestamp } from "firebase/firestore";
 
 export interface OrderModel {
     id: string;
+    trackingId:string;
     name: string;
     totalAmount: number;
     createdAt: Timestamp;
