@@ -8,7 +8,7 @@ import { UserModel } from '@/app/model/user_model'
 import { getDoctors } from '@/server/doctors'
 
 
-const doctors = () => {
+const Doctors = () => {
     const [doctors, setdoctors] = useState<UserModel[]>([])
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState('')
@@ -131,4 +131,4 @@ const doctors = () => {
     )
 }
 
-export default doctors
+export default Doctors

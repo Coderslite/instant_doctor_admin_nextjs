@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createPharmacy } from '@/server/pharmacies';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Image from 'next/image';
 
 const CreatePharmacyForm = () => {
     const router = useRouter();
@@ -225,7 +226,7 @@ const CreatePharmacyForm = () => {
                             </div>
                             {imagePreview && (
                                 <div className="w-16 h-16 rounded-md overflow-hidden border border-gray-200">
-                                    <img
+                                    <Image
                                         src={imagePreview}
                                         alt="Preview"
                                         className="w-full h-full object-cover"

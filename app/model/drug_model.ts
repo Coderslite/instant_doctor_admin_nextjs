@@ -7,7 +7,7 @@ export interface DrugModel {
     remaining: number;
     pharamcyId: string;
     description: string;
-    amount: string;
+    amount: number;
     createdAt: Timestamp;
 }
 

@@ -324,7 +324,7 @@ const EditPharmacyPage = () => {
                             </div>
                             {(imagePreview || currentImageUrl) && (
                                 <div className="w-16 h-16 rounded-md overflow-hidden border border-gray-200">
-                                    <img
+                                    <Image
                                         src={imagePreview || currentImageUrl || ''}
                                         alt="Pharmacy Preview"
                                         className="w-full h-full object-cover"

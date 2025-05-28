@@ -348,8 +348,8 @@ const PatientDetails = () => {
                 <div className="space-y-4">
                     {[...orders, ...appointments.map(a => ({ ...a, type: 'appointment' as const }))]
                         .sort((a, b) => {
-                            const aDate = 'createdAt' in a ? a.createdAt : a.startTime;
-                            const bDate = 'createdAt' in b ? b.createdAt : b.startTime;
+                            const aDate = a.createdAt
+                            const bDate = b.createdAt;
                             return bDate.seconds - aDate.seconds;
                         })
                         .slice(0, 5)

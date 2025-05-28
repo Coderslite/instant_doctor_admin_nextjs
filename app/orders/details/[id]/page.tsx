@@ -25,7 +25,7 @@ const OrderDetails = () => {
     const [user, setUser] = useState<UserModel | null>(null);
     const [loading, setLoading] = useState(true);
     const [updatingStatus, setUpdatingStatus] = useState(false);
-    const [currentStatus, setCurrentStatus] = useState<'pending' | 'confirmed' | 'delivering' | 'completed'>('pending');
+    const [currentStatus, setCurrentStatus] = useState<'pending' | 'confirmed' | 'delivering' | 'completed' | 'cancelled'>('pending');
 
     useEffect(() => {
         const fetchData = async () => {
