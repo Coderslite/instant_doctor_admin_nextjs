@@ -5,7 +5,7 @@ import { collection, getDocs, getFirestore, query, where } from 'firebase/firest
 export function getPharmacyId(): string {
     if (typeof window === 'undefined') return ''; // SSR guard
     const value = `; ${document.cookie}`;
-    const parts = value.split(`; pharmacyId=`);
+    const parts = value.split(`; adminId=`);
     if (parts.length === 2) return parts.pop()!.split(';').shift()!;
     return '';
 }
@@ -16,14 +16,14 @@ export async function POST(request: Request) {
 
     try {
         // Query the Pharmacies collection
-        const pharmaciesRef = collection(db, 'Pharmacies')
+        const pharmaciesRef = collection(db, 'Administrator')
         const q = query(pharmaciesRef, where('email', '==', email))
         const querySnapshot = await getDocs(q)
 
         if (querySnapshot.empty) {
             return new Response(JSON.stringify({
                 success: false,
-                message: 'No pharmacy found with this email'
+                message: 'No administrator found with this email'
             }), { status: 401 })
         }
 
@@ -40,8 +40,8 @@ export async function POST(request: Request) {
 
         return new Response(JSON.stringify({
             success: true,
-            pharmacyId: pharmacyDoc.id,
-            pharmacyName: pharmacyData.name
+           adminId: pharmacyDoc.id,
+           adminName: pharmacyData.name
         }), { status: 200 })
 
     } catch (error) {

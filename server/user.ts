@@ -4,11 +4,12 @@ import { collection, doc, getDoc, DocumentData } from "firebase/firestore";
 
 const userCol = collection(db, 'Users');
 
-async function getUserById(id: string): Promise<UserModel | undefined> {
+async function getUserById(id: string): Promise<UserModel | null> {
     const userRef = doc(userCol, id);
     const userSnap = await getDoc(userRef);
 
     if (userSnap.exists()) {
+        console.log("exist")
         const userData = userSnap.data();
 
         // Convert DocumentData to UserModel
@@ -22,12 +23,25 @@ async function getUserById(id: string): Promise<UserModel | undefined> {
             token: userData.token,
             // Add any other required properties from UserModel
             ...userData // This spreads any additional properties that might be in the document
+            ,
+            certificate: userData.certificate,
+            experience: userData.experience,
+            isAvailable: userData.isAvailable,
+            accountStatus: userData.accountStatus,
+            amount: userData.amount,
+            bio: userData.bio,
+            specialization: userData.specialization,
+            workAddress: userData.workAddress,
+            yearHousemanship: userData.yearHousemanship,
         };
 
         return user;
     }
 
-    return undefined;
+    return null;
 }
 
-export { getUserById };
+async function updateUser(userId: string, date: {}) {
+
+}
+export { getUserById, updateUser };

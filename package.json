@@ -1,5 +1,5 @@
 {
-  "name": "instant-doctor-pharmacy",
+  "name": "instant-doctor-admin",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -15,12 +15,13 @@
     "firebase": "^11.6.1",
     "flowbite": "^3.1.2",
     "flowbite-react": "^0.11.7",
-    "next": "15.3.1",
+    "next": "^15.4.0-canary.55",
     "postcss": "^8.5.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hot-toast": "^2.5.2",
-    "react-icons": "^5.5.0"
+    "react-icons": "^5.5.0",
+    "react-toastify": "^11.0.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

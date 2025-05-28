@@ -81,7 +81,7 @@ const Home = () => {
         {/* Active Stocks Card */}
         <StatCard
           icon={<MdOutlineInventory2 className="text-black text-2xl" />}
-          title="Ongoing Orders"
+          title="Users"
           value={stats.activeStocks.toLocaleString()}
           link="/stocks/active"
           bgColor="bg-blue"
@@ -90,7 +90,7 @@ const Home = () => {
         {/* Pending Orders Card */}
         <StatCard
           icon={<BsClockHistory className="text-black text-2xl" />}
-          title="Pending Orders"
+          title="Doctors"
           value={stats.pendingOrders.toLocaleString()}
           link="/orders/pending"
           bgColor="bg-pink"
@@ -99,7 +99,7 @@ const Home = () => {
         {/* Delivered Card */}
         <StatCard
           icon={<FiTruck className="text-black text-2xl" />}
-          title="Delivered"
+          title="Pharmacies"
           value={stats.delivered.toLocaleString()}
           link="/orders/delivered"
           bgColor="bg-dark-green"
@@ -108,7 +108,7 @@ const Home = () => {
         {/* Active Products Card */}
         <StatCard
           icon={<MdOutlineDisabledByDefault className="text-black text-2xl" />}
-          title="Active Products"
+          title="Appointments"
           value={stats.disabledProducts.toLocaleString()}
           link="/products/disabled"
           bgColor="bg-green"
@@ -118,7 +118,7 @@ const Home = () => {
         {/* Disabled Products Card */}
         <StatCard
           icon={<MdOutlineDisabledByDefault className="text-black text-2xl" />}
-          title="Disabled Products"
+          title="Orders"
           value={stats.disabledProducts.toLocaleString()}
           link="/products/disabled"
           bgColor="bg-gray-500"

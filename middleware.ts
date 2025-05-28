@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  const token = request.cookies.get('pharmacyId')?.value;
+  const token = request.cookies.get('adminId')?.value;
 
   // If no token and trying to access protected routes, redirect to login
   if (!token && !request.nextUrl.pathname.startsWith('/login')) {
@@ -20,5 +20,5 @@ export function middleware(request: NextRequest) {
 
 // Define protected routes
 export const config = {
-  matcher: ['/orders/:path*', '/stocks/:path*','/'], // Corrected matcher syntax
+  matcher: ['/orders/:path*', '/stocks/:path*','/', '/pharmacies/:path*', '/users/:path*', '/appointments/:path*'], // Corrected matcher syntax
 };

@@ -6,31 +6,18 @@ import { deleteObject, ref } from "firebase/storage";
 const drugCol = collection(db, 'Drugs');
 const drugCatCol = collection(db, 'DrugCategories');
 
-// Helper function to get pharmacyId from cookies
-function getPharmacyId(): string {
-    if (typeof window === 'undefined') return ''; // SSR guard
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; pharmacyId=`);
-    if (parts.length === 2) return parts.pop()!.split(';').shift()!;
-    return '';
-}
+
 
 async function getProducts() {
-    const pharmacyId = getPharmacyId();
-    if (!pharmacyId) throw new Error('Not authenticated');
-
-    const q = query(drugCol, where('pharmacyId', '==', pharmacyId));
+    const q = query(drugCol);
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 
 async function getActiveStocks() {
-    const pharmacyId = getPharmacyId();
-    if (!pharmacyId) throw new Error('Not authenticated');
-    console.log(pharmacyId);
+
     const q = query(
         drugCol,
-        where('pharmacyId', '==', pharmacyId),
         where('remaining', '>=', 1)
     );
     const drugSnap = await getDocs(q);
@@ -52,12 +39,8 @@ async function getActiveStocks() {
     return drugs;
 }
 async function getOutOfStocks() {
-    const pharmacyId = getPharmacyId();
-    if (!pharmacyId) throw new Error('Not authenticated');
-    console.log(pharmacyId);
     const q = query(
         drugCol,
-        where('pharmacyId', '==', pharmacyId),
         where('remaining', '==', 0)
     );
     const drugSnap = await getDocs(q);
@@ -79,12 +62,8 @@ async function getOutOfStocks() {
 
 
 async function getOutOfStockStocks() {
-    const pharmacyId = getPharmacyId();
-    if (!pharmacyId) throw new Error('Not authenticated');
-
     const q = query(
         drugCol,
-        where('pharmacyId', '==', pharmacyId),
         where('remaining', '==', 0)
     );
     const drugSnap = await getDocs(q);
@@ -92,11 +71,8 @@ async function getOutOfStockStocks() {
 }
 
 async function newStock(data: NewStockData) {
-    const pharmacyId = getPharmacyId();
-    if (!pharmacyId) throw new Error('Not authenticated');
-
     // Add pharmacyId to the new stock data
-    const stockData = { ...data, pharmacyId };
+    const stockData = { ...data};
     const res = await addDoc(drugCol, stockData);
     const docId = res.id;
     const docRef = doc(drugCol, docId);
@@ -105,9 +81,6 @@ async function newStock(data: NewStockData) {
 }
 
 async function getDrugCat(): Promise<DrugCategory[]> {
-    const pharmacyId = getPharmacyId();
-    if (!pharmacyId) throw new Error('Not authenticated');
-
     const q = query(drugCatCol);
     const drugCatSnap = await getDocs(q);
 
@@ -119,26 +92,17 @@ async function getDrugCat(): Promise<DrugCategory[]> {
 
 
 async function getStockById(id: string): Promise<StockItem | undefined> {
-    const pharmacyId = getPharmacyId();
-    if (!pharmacyId) throw new Error('Not authenticated');
-
     const docRef = doc(db, 'Drugs', id);
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
         const stock = docSnap.data();
-        // Verify the stock belongs to this pharmacy
-        if (stock.pharmacyId !== pharmacyId) {
-            return undefined;
-        }
         return { id: docSnap.id, ...stock } as StockItem;
     }
     return undefined;
 }
 
 async function updateStock(id: string, data: UpdateStockData) {
-    const pharmacyId = getPharmacyId();
-    if (!pharmacyId) throw new Error('Not authenticated');
 
     const docRef = doc(db, 'Drugs', id);
     const docSnap = await getDoc(docRef);
@@ -148,11 +112,6 @@ async function updateStock(id: string, data: UpdateStockData) {
     }
 
     const stockData = docSnap.data();
-
-    // Check ownership
-    if (stockData.pharmacyId !== pharmacyId) {
-        throw new Error('You do not have permission to update this stock');
-    }
 
     // Remove undefined fields
     const cleanData = removeUndefined(data);
@@ -173,13 +132,11 @@ function removeUndefined<T extends object>(obj: T): Partial<T> {
 
 
 async function restockProduct(id: string, quantityToAdd: number) {
-    const pharmacyId = getPharmacyId();
-    if (!pharmacyId) throw new Error('Not authenticated');
 
     const docRef = doc(db, 'Drugs', id);
     const docSnap = await getDoc(docRef);
 
-    if (docSnap.exists() && docSnap.data().pharmacyId === pharmacyId) {
+    if (docSnap.exists()) {
         const currentQuantity = docSnap.data().quantity;
         const currentRemaining = docSnap.data().remaining;
 
@@ -193,14 +150,11 @@ async function restockProduct(id: string, quantityToAdd: number) {
 }
 
 async function updateProductImages(id: string, newImages: string[], deletedImages: string[]) {
-    const pharmacyId = getPharmacyId();
-    if (!pharmacyId) throw new Error('Not authenticated');
-
     const docRef = doc(db, 'Drugs', id);
     const docSnap = await getDoc(docRef);
 
     // Verify ownership before updating
-    if (!docSnap.exists() || docSnap.data().pharmacyId !== pharmacyId) {
+    if (!docSnap.exists()) {
         throw new Error('Product not found or not owned by your pharmacy');
     }
 

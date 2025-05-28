@@ -7,6 +7,7 @@ import FlowbiteInitializer from "@/components/FlowbiteInitializer";
 import Sidebar from "@/components/Sidebar";
 import { usePathname } from "next/navigation";
 import { Toaster } from "react-hot-toast";
+import { ToastContainer } from "react-toastify";
 
 // export const metadata: Metadata = {
 //   title: "Create Next App",
@@ -24,6 +25,7 @@ export default function RootLayout({
     <html lang="en" data-theme="light" className="w-full h-full">
       <body className="w-full h-full">
         <FlowbiteInitializer />
+        <ToastContainer />
         <div className="flex w-full min-h-screen">
           {/* Sidebar */}
           {isAuthPage ? ('') : (<Sidebar />)}

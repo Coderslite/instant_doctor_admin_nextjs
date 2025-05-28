@@ -10,7 +10,7 @@ export interface OrderModel {
     pharmacyId: string;
     userId: string;
     items: ItemModel[];
-    status: 'pending' | 'confirmed' | 'delivering' | 'completed';
+    status: 'pending' | 'confirmed' | 'delivering' | 'completed' | 'cancelled';
     deliveryFee?: number;
     address: string;
 }

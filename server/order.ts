@@ -4,22 +4,9 @@ import { collection, doc, getDoc, getDocs, limit, orderBy, query, Timestamp, upd
 
 const orderCol = collection(db, "Orders");
 
-// Helper function to get pharmacyId from cookies
-function getPharmacyId(): string {
-    if (typeof window === 'undefined') return ''; // SSR guard
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; pharmacyId=`);
-    if (parts.length === 2) return parts.pop()!.split(';').shift()!;
-    return '';
-}
-
 async function getAllOrdersLimitFive(): Promise<OrderModel[]> {
-    const pharmacyId = getPharmacyId();
-    console.log(pharmacyId);
-
     const q = query(
         orderCol,
-        where('pharmacyId', '==', pharmacyId),
         limit(5)
     );
 
@@ -35,7 +22,7 @@ async function getAllOrdersLimitFive(): Promise<OrderModel[]> {
             totalAmount: data.totalAmount || 0,
             createdAt: data.createdAt || Timestamp.now(),
             remaining: data.remaining || '',
-            pharmacyId: data.pharmacyId || pharmacyId,
+            pharmacyId: data.pharmacyId,
             userId: data.userId || '',
             trackingId: data.trackingId || '',
             items: data.items?.map((item: any) => ({
@@ -43,7 +30,7 @@ async function getAllOrdersLimitFive(): Promise<OrderModel[]> {
                 id: item.id || '',
                 images: item.images || [],
                 name: item.name || '',
-                pharmacyId: item.pharmacyId || pharmacyId,
+                pharmacyId: item.pharmacyId,
                 quantity: item.quantity || 1
             } as ItemModel)) || [],
             status: data.status || 'pending',
@@ -102,10 +89,9 @@ async function getOrderById(id: string): Promise<OrderModel | undefined> {
 
 
 async function getActiveOrdersCounts() {
-    const pharmacyId = getPharmacyId();
+    
     const q = query(
         orderCol,
-        where("pharmacyId", "==", pharmacyId),
         where("status", '!=', 'pending'),
         where("status", "in", ["confirmed", "delivering"])
     );
@@ -114,10 +100,9 @@ async function getActiveOrdersCounts() {
 }
 
 async function getPendingOrdersCounts() {
-    const pharmacyId = getPharmacyId();
+    
     const q = query(
         orderCol,
-        where("pharmacyId", "==", pharmacyId),
         where("status", "==", 'pending'),
         limit(5)
     );
@@ -126,10 +111,9 @@ async function getPendingOrdersCounts() {
 }
 
 async function getCompletedOrdersCounts() {
-    const pharmacyId = getPharmacyId();
+    
     const q = query(
         orderCol,
-        where("pharmacyId", "==", pharmacyId),
         where("status", "==", 'completed'),
     );
     const snapSnapshot = await getDocs(q);
@@ -137,11 +121,11 @@ async function getCompletedOrdersCounts() {
 }
 
 async function updateOrderStatusInFirestore(orderId: string, newStatus: string) {
-    const pharmacyId = getPharmacyId();
+    
     const orderRef = doc(db, 'Orders', orderId);
     const orderSnap = await getDoc(orderRef);
 
-    if (orderSnap.exists() && orderSnap.data().pharmacyId === pharmacyId) {
+    if (orderSnap.exists()) {
         await updateDoc(orderRef, {
             status: newStatus,
             updatedAt: new Date()
@@ -152,10 +136,9 @@ async function updateOrderStatusInFirestore(orderId: string, newStatus: string) 
 }
 
 async function getDeliveredOrders() {
-    const pharmacyId = getPharmacyId();
+    
     const q = query(
         orderCol,
-        where('pharmacyId', '==', pharmacyId),
         where('status', '==', 'completed'),
         orderBy('createdAt', 'desc')
     );
@@ -168,10 +151,9 @@ async function getDeliveredOrders() {
 }
 
 async function getPendingOrders() {
-    const pharmacyId = getPharmacyId();
+    
     const q = query(
         orderCol,
-        where('pharmacyId', '==', pharmacyId),
         where('status', '==', 'pending'),
         orderBy('createdAt', 'desc')
     );
@@ -184,10 +166,9 @@ async function getPendingOrders() {
 }
 
 async function getCancelledOrders() {
-    const pharmacyId = getPharmacyId();
+    
     const q = query(
         orderCol,
-        where('pharmacyId', '==', pharmacyId),
         where('status', '==', 'cancelled'),
         orderBy('createdAt', 'desc')
     );
@@ -199,6 +180,41 @@ async function getCancelledOrders() {
     })) as OrderModel[];
 }
 
+async function getOrdersByUserId(userId: string): Promise<OrderModel[]> {
+    
+    const q = query(
+        orderCol,
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc')
+    );
+
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            name: data.name || '',
+            totalAmount: data.totalAmount || 0,
+            createdAt: data.createdAt || Timestamp.now(),
+            remaining: data.remaining || '',
+            pharmacyId: data.pharmacyId,
+            userId: data.userId || '',
+            trackingId: data.trackingId || '',
+            items: data.items?.map((item: any) => ({
+                amount: item.amount || 0,
+                id: item.id || '',
+                images: item.images || [],
+                name: item.name || '',
+                pharmacyId: item.pharmacyId,
+                quantity: item.quantity || 1
+            } as ItemModel)) || [],
+            status: data.status || 'pending',
+            deliveryFee: data.deliveryFee || 0,
+            address: data.address || ''
+        } as OrderModel;
+    });
+}
+
 export {
     getAllOrdersLimitFive,
     getActiveOrdersCounts,
@@ -208,5 +224,6 @@ export {
     updateOrderStatusInFirestore,
     getDeliveredOrders,
     getPendingOrders,
-    getCancelledOrders
+    getCancelledOrders, 
+    getOrdersByUserId,
 };

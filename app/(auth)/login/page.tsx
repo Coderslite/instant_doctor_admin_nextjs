@@ -20,12 +20,12 @@ const Login = () => {
 
         try {
             // Direct Firestore query (matches your backend pattern)
-            const pharmaciesRef = collection(db, 'Pharmacies')
+            const pharmaciesRef = collection(db, 'Administrator')
             const q = query(pharmaciesRef, where('email', '==', email))
             const querySnapshot = await getDocs(q)
 
             if (querySnapshot.empty) {
-                throw new Error('No pharmacy found with this email')
+                throw new Error('No administrator found with this email')
             }
 
             const pharmacyDoc = querySnapshot.docs[0]
@@ -44,8 +44,8 @@ const Login = () => {
                 document.cookie = `${name}=${value};${expires};path=/`
             }
 
-            setCookie('pharmacyId', pharmacyDoc.id, 7) // 7 days expiration
-            setCookie('pharmacyName', pharmacyData.name, 7)
+            setCookie('adminId', pharmacyDoc.id, 7) // 7 days expiration
+            setCookie('adminName', pharmacyData.name, 7)
 
             toast.success('Login successful!')
             router.push('/')
@@ -136,8 +136,8 @@ const Login = () => {
             <div className="hidden md:block relative w-1/2 bg-[url('/login_bg.png')] bg-cover bg-center">
                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
                     <div className="text-center text-white p-8">
-                        <h2 className="text-4xl font-bold mb-4">Pharmacy Management</h2>
-                        <p className="text-xl opacity-90">Your complete pharmacy solution</p>
+                        <h2 className="text-4xl font-bold mb-4">Admin Dashboard</h2>
+                        <p className="text-xl opacity-90">Admin Management system</p>
                     </div>
                 </div>
             </div>
