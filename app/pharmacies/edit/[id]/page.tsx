@@ -21,7 +21,7 @@ const EditPharmacyPage = () => {
         longitude: '',
         email: '',
         phoneNumber: '',
-        deliveryFee: '',
+        deliveryFee: 100,
         password: '',
     });
 
