@@ -5,6 +5,8 @@ import { getDeliveredOrders } from '@/server/order'
 import { Timestamp } from 'firebase/firestore'
 import Link from 'next/link'
 import { FiClock, FiEye } from 'react-icons/fi'
+import { getPharmacyNameById } from '@/server/pharmacies'
+import { OrderModel } from '@/app/model/order_model'
 
 interface OrderItem {
     id: string
@@ -13,17 +15,8 @@ interface OrderItem {
     quantity: number
 }
 
-interface Order {
-    id: string
-    items: OrderItem[]
-    status: string
-    totalAmount: number
-    createdAt: Timestamp
-    userId: string
-}
-
 const DeliveredOrders = () => {
-    const [orders, setOrders] = useState<Order[]>([])
+    const [orders, setOrders] = useState<OrderModel[]>([])
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState('')
 
@@ -32,8 +25,16 @@ const DeliveredOrders = () => {
             try {
                 setLoading(true)
                 const deliveredOrders = await getDeliveredOrders()
-                console.log(deliveredOrders);
-                setOrders(deliveredOrders)
+                const ordersWithPharmacyNames = await Promise.all(
+                    deliveredOrders.map(async (order) => {
+                        const pharmacyName = await getPharmacyNameById(order.pharmacyId)
+                        return {
+                            ...order,
+                            pharmacyName
+                        }
+                    })
+                )
+                setOrders(ordersWithPharmacyNames)
             } catch (error) {
                 console.error('Error fetching orders:', error)
             } finally {
@@ -103,6 +104,7 @@ const DeliveredOrders = () => {
                 <table className="min-w-full text-sm text-left text-gray-500">
                     <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                         <tr>
+                            <th scope="col" className="px-4 py-3">Pharmacy</th>
                             <th scope="col" className="px-4 py-3">Products</th>
                             <th scope="col" className="px-4 py-3">Status</th>
                             <th scope="col" className="px-4 py-3">Amount</th>
@@ -121,6 +123,7 @@ const DeliveredOrders = () => {
                         ) : (
                             filteredOrders.map((order) => (
                                 <tr key={order.id} className="bg-white border-b hover:bg-gray-50">
+                                    <td className="px-4 py-4 font-medium text-gray-900">{order.pharmacyName}</td>
                                     <td className="px-4 py-4 font-medium text-gray-900">
                                         {order.items.length} {order.items.length === 1 ? 'Item' : 'Items'}
                                     </td>

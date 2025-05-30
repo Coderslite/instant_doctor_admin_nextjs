@@ -169,7 +169,77 @@ async function getPatientName(patientId: string): Promise<string> {
 export async function getPendingAppointments(): Promise<(AppointmentModel & { doctorName: string; patientName: string })[]> {
     const q = query(
         appointmentCol,
-        // where('status', '==', 'pending'),
+        where('status', '==', 'pending'),
+        where('isPaid', '==', true),
+        orderBy('startTime', 'asc')
+    );
+
+    const snapshot = await getDocs(q);
+    const appointmentsWithNames = await Promise.all(
+        snapshot.docs.map(async (doc) => {
+            const data = doc.data();
+            const doctorName = data.doctorId ? await getDoctorName(data.doctorId) : 'Unassigned';
+            const patientName = await getPatientName(data.userId);
+
+            return {
+                id: doc.id,
+                userId: data.userId,
+                doctorId: data.doctorId || null,
+                doctorName: doctorName,
+                patientName: patientName,
+                complain: data.complain || '',
+                price: data.price || 0,
+                startTime: data.startTime || Timestamp.now(),
+                endTime: data.endTime || Timestamp.now(),
+                isPaid: data.isPaid || false,
+                createdAt: data.createdAt || Timestamp.now(),
+                status: data.status,
+            };
+        })
+    );
+
+    return appointmentsWithNames;
+}
+
+export async function getOngoingAppointments(): Promise<(AppointmentModel & { doctorName: string; patientName: string })[]> {
+    const q = query(
+        appointmentCol,
+        where('startTime', '<=', Timestamp.now()),
+        where('endTime', '>', Timestamp.now()),
+        orderBy('startTime', 'asc')
+    );
+
+    const snapshot = await getDocs(q);
+    const appointmentsWithNames = await Promise.all(
+        snapshot.docs.map(async (doc) => {
+            const data = doc.data();
+            const doctorName = data.doctorId ? await getDoctorName(data.doctorId) : 'Unassigned';
+            const patientName = await getPatientName(data.userId);
+
+            return {
+                id: doc.id,
+                userId: data.userId,
+                doctorId: data.doctorId || null,
+                doctorName: doctorName,
+                patientName: patientName,
+                complain: data.complain || '',
+                price: data.price || 0,
+                startTime: data.startTime || Timestamp.now(),
+                endTime: data.endTime || Timestamp.now(),
+                isPaid: data.isPaid || false,
+                createdAt: data.createdAt || Timestamp.now(),
+                status: data.status,
+            };
+        })
+    );
+
+    return appointmentsWithNames;
+}
+
+export async function getCancelledAppointments(): Promise<(AppointmentModel & { doctorName: string; patientName: string })[]> {
+    const q = query(
+        appointmentCol,
+        where('status', '==', 'cancelled'),
         orderBy('startTime', 'asc')
     );
 

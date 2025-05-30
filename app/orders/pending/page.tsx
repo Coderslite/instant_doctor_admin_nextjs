@@ -5,6 +5,9 @@ import { getPendingOrders } from '@/server/order'
 import { Timestamp } from 'firebase/firestore'
 import Link from 'next/link'
 import { FiClock, FiEye, FiAlertCircle } from 'react-icons/fi'
+import { getPharmacyId } from '@/server/auth'
+import { getPharmacyNameById } from '@/server/pharmacies'
+import { OrderModel } from '@/app/model/order_model'
 
 interface OrderItem {
     id: string
@@ -13,17 +16,9 @@ interface OrderItem {
     quantity: number
 }
 
-interface Order {
-    id: string
-    items: OrderItem[]
-    status: string
-    totalAmount: number
-    createdAt: Timestamp
-    userId: string
-}
 
 const PendingOrders = () => {
-    const [orders, setOrders] = useState<Order[]>([])
+    const [orders, setOrders] = useState<OrderModel[]>([])
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState('')
 
@@ -32,7 +27,16 @@ const PendingOrders = () => {
             try {
                 setLoading(true)
                 const pendingOrders = await getPendingOrders()
-                setOrders(pendingOrders)
+                const ordersWithPharmacyNames = await Promise.all(
+                    pendingOrders.map(async (order) => {
+                        const pharmacyName = await getPharmacyNameById(order.pharmacyId)
+                        return {
+                            ...order,
+                            pharmacyName
+                        }
+                    })
+                )
+                setOrders(ordersWithPharmacyNames);
             } catch (error) {
                 console.error('Error fetching orders:', error)
             } finally {
@@ -104,6 +108,7 @@ const PendingOrders = () => {
                 <table className="min-w-full text-sm text-left text-gray-500">
                     <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                         <tr>
+                            <th scope="col" className="px-4 py-3">Pharmacy</th>
                             <th scope="col" className="px-4 py-3">Product</th>
                             <th scope="col" className="px-4 py-3">Status</th>
                             <th scope="col" className="px-4 py-3">Amount</th>
@@ -122,6 +127,7 @@ const PendingOrders = () => {
                         ) : (
                             filteredOrders.map((order) => (
                                 <tr key={order.id} className="bg-white border-b hover:bg-gray-50">
+                                    <td className="px-4 py-4 font-medium text-gray-900">{order.pharmacyName}</td>
                                     <td className="px-4 py-4 font-medium text-gray-900">
                                         {order.items[0]?.name || 'N/A'}
                                         {order.items.length > 1 && ` +${order.items.length - 1} more`}
@@ -133,7 +139,7 @@ const PendingOrders = () => {
                                     </td>
                                     <td className="px-4 py-4">NGN{order.totalAmount.toLocaleString()}</td>
                                     <td className="px-4 py-4">{formatDate(order.createdAt)}</td>
-                                    <td className="px-4 py-4 font-mono">{order.id.slice(0, 8)}</td>
+                                    <td className="px-4 py-4 font-mono">{order.trackingId}</td>
                                     <td className="px-4 py-4">
                                         <Link
                                             href={`/orders/details/${order.id}`}

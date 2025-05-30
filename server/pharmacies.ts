@@ -9,7 +9,7 @@ import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage
 
 export const getPharmacies = async (): Promise<PharmacyModel[]> => {
     try {
-        const q = query(collection(db, 'Pharmacies'), where('status','!=','deleted'));
+        const q = query(collection(db, 'Pharmacies'), where('status', '!=', 'deleted'));
         const querySnapshot = await getDocs(q)
         const pharmacies: PharmacyModel[] = []
 
@@ -34,6 +34,28 @@ export const getPharmacies = async (): Promise<PharmacyModel[]> => {
     } catch (error) {
         console.error('Error fetching pharmacies:', error)
         throw error
+    }
+}
+
+const pharmacyCache: Record<string, PharmacyModel> = {};
+
+export async function getPharmacyNameById(pharmacyId: string): Promise<string> {
+    // Check cache first
+    if (pharmacyCache[pharmacyId]) {
+        return pharmacyCache[pharmacyId].name;
+    }
+
+    try {
+        const pharmacy = await getPharmacyById(pharmacyId);
+        if (pharmacy) {
+            // Add to cache
+            pharmacyCache[pharmacyId] = pharmacy;
+            return pharmacy.name;
+        }
+        return 'Unknown Pharmacy';
+    } catch (error) {
+        console.error('Error fetching pharmacy:', error);
+        return 'Unknown Pharmacy';
     }
 }
 
@@ -84,7 +106,7 @@ export const createPharmacy = async (pharmacyData: NewPharmacyData): Promise<str
                 pharmacyData.location.latitude,
                 pharmacyData.location.longitude
             ),
-            deliveryFee: pharmacyData.deliveryFee || '0',
+            deliveryFee: pharmacyData.deliveryFee || 0,
             email: pharmacyData.email,
             phoneNumber: pharmacyData.phoneNumber || '',
             image: imageUrl || '',

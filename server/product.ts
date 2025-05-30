@@ -3,8 +3,8 @@ import { db, storage } from "@/firebase/clientApp";
 import { addDoc, arrayRemove, arrayUnion, collection, doc, getDoc, getDocs, query, updateDoc, where } from "firebase/firestore";
 import { deleteObject, ref } from "firebase/storage";
 
-const drugCol = collection(db, 'Drugs');
-const drugCatCol = collection(db, 'DrugCategories');
+const drugCol = collection(db, 'Products');
+const drugCatCol = collection(db, 'ProductCategories');
 
 
 
@@ -14,51 +14,36 @@ async function getProducts() {
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 
-async function getActiveStocks() {
-
+export const getActiveStocks = async (pharmacyId: string): Promise<DrugModel[]> => {
+    console.log(pharmacyId);
     const q = query(
-        drugCol,
-        where('remaining', '>=', 1)
+        collection(db, 'Products'),
+        where('pharmacyId', '==', pharmacyId),
+        where('remaining', '>=', 1),
+        // where('status', '==', 'active')
     );
-    const drugSnap = await getDocs(q);
+    const querySnapshot = await getDocs(q);
 
-    const drugs: DrugModel[] = drugSnap.docs.map((doc) => {
-        const data = doc.data();
-        return {
-            id: doc.id,
-            name: data.name,
-            images: data.images || [],
-            remaining: data.remaining,
-            pharamcyId: data.pharmacyId,
-            description: data.description,
-            amount: data.amount,
-            createdAt: data.createdAt,
-        };
-    });
-
-    return drugs;
-}
-async function getOutOfStocks() {
+    return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    })) as DrugModel[];
+};
+export const getOutOfStocks = async (pharmacyId: string): Promise<DrugModel[]> => {
+    console.log(pharmacyId);
     const q = query(
-        drugCol,
-        where('remaining', '==', 0)
+        collection(db, 'Products'),
+        where('pharmacyId', '==', pharmacyId),
+        where('remaining', '==', 0),
+        // where('status', '==', 'active')
     );
-    const drugSnap = await getDocs(q);
-    const drugs: DrugModel[] = drugSnap.docs.map((doc) => {
-        const data = doc.data();
-        return {
-            id: doc.id,
-            name: data.name,
-            images: data.images || [],
-            remaining: data.remaining,
-            pharamcyId: data.pharmacyId,
-            description: data.description,
-            amount: data.amount,
-            createdAt: data.createdAt,
-        };
-    });
-    return drugs;
-}
+    const querySnapshot = await getDocs(q);
+
+    return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    })) as DrugModel[];
+};
 
 
 async function getOutOfStockStocks() {
@@ -72,7 +57,7 @@ async function getOutOfStockStocks() {
 
 async function newStock(data: NewStockData) {
     // Add pharmacyId to the new stock data
-    const stockData = { ...data};
+    const stockData = { ...data };
     const res = await addDoc(drugCol, stockData);
     const docId = res.id;
     const docRef = doc(drugCol, docId);
@@ -92,7 +77,7 @@ async function getDrugCat(): Promise<DrugCategory[]> {
 
 
 async function getStockById(id: string): Promise<StockItem | undefined> {
-    const docRef = doc(db, 'Drugs', id);
+    const docRef = doc(db, 'Products', id);
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
@@ -104,7 +89,7 @@ async function getStockById(id: string): Promise<StockItem | undefined> {
 
 async function updateStock(id: string, data: UpdateStockData) {
 
-    const docRef = doc(db, 'Drugs', id);
+    const docRef = doc(db, 'Products', id);
     const docSnap = await getDoc(docRef);
 
     if (!docSnap.exists()) {
@@ -133,7 +118,7 @@ function removeUndefined<T extends object>(obj: T): Partial<T> {
 
 async function restockProduct(id: string, quantityToAdd: number) {
 
-    const docRef = doc(db, 'Drugs', id);
+    const docRef = doc(db, 'Products', id);
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
@@ -150,7 +135,7 @@ async function restockProduct(id: string, quantityToAdd: number) {
 }
 
 async function updateProductImages(id: string, newImages: string[], deletedImages: string[]) {
-    const docRef = doc(db, 'Drugs', id);
+    const docRef = doc(db, 'Products', id);
     const docSnap = await getDoc(docRef);
 
     // Verify ownership before updating
@@ -181,8 +166,6 @@ async function updateProductImages(id: string, newImages: string[], deletedImage
 
 export {
     getProducts,
-    getActiveStocks,
-    getOutOfStocks,
     getOutOfStockStocks,
     newStock,
     getDrugCat,

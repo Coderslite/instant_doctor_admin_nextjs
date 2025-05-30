@@ -351,7 +351,7 @@ const Sidebar = () => {
                     <div className="footer mt-auto">
                         <div className='flex gap-1 mb-3 items-center'>
                             <FiUser className="text-xl" />
-                            <a href="/profile" className='text-sm font-semibold'>Pharmacy Profile</a>
+                            <Link href="/profile" className='text-sm font-semibold'>Admin Profile</Link>
                         </div>
                         <button
                             onClick={handleLogout}

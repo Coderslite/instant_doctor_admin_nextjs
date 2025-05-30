@@ -6,7 +6,7 @@ export interface PharmacyModel {
     name: string;
     address: string;
     location: GeoPoint;
-    deliveryFee: string;
+    deliveryFee: number;
     email: string;
     phoneNumber: string;
     image: string;
@@ -22,7 +22,7 @@ export interface NewPharmacyData {
         latitude: number;
         longitude: number;
     };
-    deliveryFee: string;
+    deliveryFee: number;
     email: string;
     phoneNumber: string;
     imageFile?: File;

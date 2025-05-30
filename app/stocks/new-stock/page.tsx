@@ -3,7 +3,7 @@
 import { DrugCategory } from '@/app/model/drug_model';
 import { getDrugCat, newStock } from '@/server/product';
 import { Timestamp } from 'firebase/firestore';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useState } from 'react';
 import { uploadImages } from '@/utils/uploadImages'
 import ImageUploader from '@/components/ImageUploader';
@@ -16,16 +16,22 @@ const NewStock = () => {
   const [isFetchingCategories, setIsFetchingCategories] = useState(true);
   const router = useRouter();
 
+  // Get the search params from the URL
+  const searchParams = useSearchParams();
+  // Get the pharmacyId from the query parameters
+  const pharmacyId = searchParams.get('pharmacyId') || '';
+
+
   // Form state
   const [formData, setFormData] = useState({
     name: '',
-    amount: 0,
-    remaining: 0,
+    amount: 100,
+    remaining: 1,
     description: '',
     discount: 0,
     category: '',
-    purchasePrice: 0,
-    quantity: 0,
+    purchasePrice: 100,
+    quantity: 1,
   });
 
   // Fetch categories on component mount
@@ -43,7 +49,9 @@ const NewStock = () => {
     fetchCategories();
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -52,7 +60,6 @@ const NewStock = () => {
         : value
     }));
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -71,13 +78,13 @@ const NewStock = () => {
         images: imageUrls,
         remaining: formData.quantity, // Set remaining to initial quantity
         createdAt: Timestamp.now(),
-        pharmacyId: 'g4fFRdqyY2iZmxQWPcgu' // Replace with actual pharmacyId from cookies
+        pharmacyId: pharmacyId
       };
 
       // Add new stock
       await newStock(stockData);
       toast.success('Product added successfully!', { id: toastId });
-      router.push('/stocks');
+      router.push('/stocks/active');
     } catch (error) {
       console.error('Error adding stock:', error);
       toast.error('Failed to add product. Please try again.', { id: toastId });
@@ -174,14 +181,14 @@ const NewStock = () => {
               <label htmlFor="description" className="block mb-2 text-sm font-medium text-gray-900">
                 Description
               </label>
-              <input
-                type="text"
+              <textarea
                 id="description"
                 name="description"
                 value={formData.description}
                 onChange={handleInputChange}
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5"
                 placeholder="Product description"
+                rows={3} // You can adjust the number of visible rows
                 disabled={isLoading}
               />
             </div>

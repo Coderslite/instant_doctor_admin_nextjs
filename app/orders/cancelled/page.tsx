@@ -5,6 +5,8 @@ import { getCancelledOrders } from '@/server/order'
 import { Timestamp } from 'firebase/firestore'
 import Link from 'next/link'
 import { FiClock, FiEye, FiX } from 'react-icons/fi'
+import { getPharmacyNameById } from '@/server/pharmacies'
+import { OrderModel } from '@/app/model/order_model'
 
 interface OrderItem {
     id: string
@@ -13,14 +15,6 @@ interface OrderItem {
     quantity: number
 }
 
-interface OrderModel {
-    id: string
-    items: OrderItem[]
-    status: string
-    totalAmount: number
-    createdAt: Timestamp
-    userId: string
-}
 
 const CancelledOrders = () => {
     const [orders, setOrders] = useState<OrderModel[]>([])
@@ -32,7 +26,16 @@ const CancelledOrders = () => {
             try {
                 setLoading(true)
                 const cancelledOrders = await getCancelledOrders()
-                setOrders(cancelledOrders)
+                const ordersWithPharmacyNames = await Promise.all(
+                    cancelledOrders.map(async (order) => {
+                        const pharmacyName = await getPharmacyNameById(order.pharmacyId)
+                        return {
+                            ...order,
+                            pharmacyName
+                        }
+                    })
+                )
+                setOrders(ordersWithPharmacyNames)
             } catch (error) {
                 console.error('Error fetching orders:', error)
             } finally {
@@ -104,6 +107,7 @@ const CancelledOrders = () => {
                 <table className="min-w-full text-sm text-left text-gray-500">
                     <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                         <tr>
+                            <th scope="col" className="px-4 py-3">Pharmacy</th>
                             <th scope="col" className="px-4 py-3">Product</th>
                             <th scope="col" className="px-4 py-3">Status</th>
                             <th scope="col" className="px-4 py-3">Amount</th>
@@ -122,6 +126,7 @@ const CancelledOrders = () => {
                         ) : (
                             filteredOrders.map((order) => (
                                 <tr key={order.id} className="bg-white border-b hover:bg-gray-50">
+                                    <td className="px-4 py-4 font-medium text-gray-900">{order.pharmacyName}</td>
                                     <td className="px-4 py-4 font-medium text-gray-900">
                                         {order.items[0]?.name || 'N/A'}
                                         {order.items.length > 1 && ` +${order.items.length - 1} more`}

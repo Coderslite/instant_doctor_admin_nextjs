@@ -3,21 +3,34 @@ import Link from "next/link";
 import { MdOutlineDisabledByDefault, MdOutlineInventory2 } from "react-icons/md";
 import { RiLogoutCircleRLine } from "react-icons/ri";
 import { Timestamp } from "firebase/firestore";
-import { getActiveOrdersCounts, getAllOrdersLimitFive, getCompletedOrdersCounts, getPendingOrdersCounts } from "@/server/order";
+import { getActiveOrdersCounts, getAllOrdersLimitFive, getCompletedOrdersCounts, getPendingOrders, getPendingOrdersCounts } from "@/server/order";
 import { OrderModel } from "./model/order_model";
-import { FiTruck } from "react-icons/fi";
+import { FiAlertCircle, FiEye, FiTruck, FiUser } from "react-icons/fi";
 import { BsCheckCircle, BsClockHistory } from "react-icons/bs";
 import { AiOutlineStock } from "react-icons/ai";
 import { useEffect, useState } from "react";
+import { getPatients } from "@/server/patients";
+import { getDoctors, getPendingDoctors } from "@/server/doctors";
+import { getPharmacies } from "@/server/pharmacies";
+import { getOngoingAppointments, getPendingAppointments } from "@/server/appointment";
+import { AppointmentModel } from "./model/appointment_model";
+
+interface AppointmentWithNames extends AppointmentModel {
+  doctorName: string;
+  patientName: string;
+}
 
 const Home = () => {
-  const [orders, setOrders] = useState<OrderModel[]>([]);
+  const [appointments, setAppointments] = useState<AppointmentWithNames[]>([])
   const [stats, setStats] = useState({
-    activeStocks: 0,
+    patients: 0,
+    doctors: 0,
+    pendingDoctors: 0,
+    pharmacies: 0,
+    ongoingAppointments: 0,
+    pendingAppointments: 0,
     pendingOrders: 0,
-    delivered: 0,
-    disabledProducts: 0,
-    outOfStock: 0
+    ongoingOrders: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -25,20 +38,24 @@ const Home = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [ordersData, activeStocks, pendingOrders, delivered] = await Promise.all([
-          getAllOrdersLimitFive(),
-          getActiveOrdersCounts(),
-          getPendingOrdersCounts(),
-          getCompletedOrdersCounts()
+        const [patients, doctors, pendingDoctors, pharmacies, ongoingAppointments, pendingAppointments, pendingOrders, ongoingOrders] = await Promise.all([
+          (await getPatients()).length,
+          (await getDoctors()).length,
+          (await getPendingDoctors()).length,
+          (await getPharmacies()).length,
+          (await getOngoingAppointments()).length,
+          (await getPendingAppointments()).length,
+          (await getPendingOrders()).length,
+          (await getPendingOrders()).length,
+          // (await get)
+
         ]);
 
-        setOrders(ordersData);
+        const pendingAppoint = await getPendingAppointments()
+        setAppointments(pendingAppoint)
+        // setOrders(ordersData);
         setStats({
-          activeStocks,
-          pendingOrders,
-          delivered,
-          disabledProducts: 0, // You'll need to implement these
-          outOfStock: 0         // You'll need to implement these
+          patients, doctors, pendingDoctors, pharmacies, ongoingAppointments, pendingAppointments, pendingOrders, ongoingOrders
         });
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -49,6 +66,35 @@ const Home = () => {
 
     fetchData();
   }, []);
+
+  const formatDate = (timestamp: Timestamp) => {
+    const date = new Date(timestamp.seconds * 1000)
+    const now = new Date()
+
+    // If today, show time
+    if (date.toDateString() === now.toDateString()) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    }
+
+    // If yesterday, show "Yesterday"
+    const yesterday = new Date(now)
+    yesterday.setDate(yesterday.getDate() - 1)
+    if (date.toDateString() === yesterday.toDateString()) {
+      return 'Yesterday'
+    }
+
+    // Otherwise show full date
+    return date.toLocaleDateString()
+  }
+
+  const formatTimeRange = (startTime: Timestamp, endTime: Timestamp) => {
+    const start = new Date(startTime.seconds * 1000)
+    const end = new Date(endTime.seconds * 1000)
+    return `${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+  }
+
+
+
 
   if (loading) {
     return (
@@ -81,9 +127,9 @@ const Home = () => {
         {/* Active Stocks Card */}
         <StatCard
           icon={<MdOutlineInventory2 className="text-black text-2xl" />}
-          title="Users"
-          value={stats.activeStocks.toLocaleString()}
-          link="/stocks/active"
+          title="Patients"
+          value={stats.patients.toLocaleString()}
+          link="/users/patients"
           bgColor="bg-blue"
         />
 
@@ -91,8 +137,8 @@ const Home = () => {
         <StatCard
           icon={<BsClockHistory className="text-black text-2xl" />}
           title="Doctors"
-          value={stats.pendingOrders.toLocaleString()}
-          link="/orders/pending"
+          value={stats.doctors.toLocaleString()}
+          link="/users/doctors"
           bgColor="bg-pink"
         />
 
@@ -100,17 +146,17 @@ const Home = () => {
         <StatCard
           icon={<FiTruck className="text-black text-2xl" />}
           title="Pharmacies"
-          value={stats.delivered.toLocaleString()}
-          link="/orders/delivered"
+          value={stats.pharmacies.toLocaleString()}
+          link="/pharmacies"
           bgColor="bg-dark-green"
         />
 
         {/* Active Products Card */}
         <StatCard
           icon={<MdOutlineDisabledByDefault className="text-black text-2xl" />}
-          title="Appointments"
-          value={stats.disabledProducts.toLocaleString()}
-          link="/products/disabled"
+          title="Ongoing Appointments"
+          value={stats.ongoingAppointments.toLocaleString()}
+          link="/appointments/ongoing"
           bgColor="bg-green"
         />
 
@@ -118,18 +164,18 @@ const Home = () => {
         {/* Disabled Products Card */}
         <StatCard
           icon={<MdOutlineDisabledByDefault className="text-black text-2xl" />}
-          title="Orders"
-          value={stats.disabledProducts.toLocaleString()}
-          link="/products/disabled"
+          title="Pending Appointment"
+          value={stats.pendingAppointments.toLocaleString()}
+          link="/appointment/pending"
           bgColor="bg-gray-500"
         />
 
         {/* Out of Stock Card */}
         <StatCard
           icon={<AiOutlineStock className="text-black text-2xl" />}
-          title="Out of stock"
-          value={stats.outOfStock.toLocaleString()}
-          link="/products/out-of-stock"
+          title="Pending Orders"
+          value={stats.pendingOrders.toLocaleString()}
+          link="/orders/pending"
           bgColor="bg-red-900"
         />
       </div>
@@ -137,51 +183,58 @@ const Home = () => {
       {/* Orders Table */}
       <div className="relative md:w-full w-[100vw] overflow-x-auto mt-10">
         <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-          <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+          <thead className="text-xs text-gray-700 uppercase bg-gray-50">
             <tr>
-              <th scope="col" className="px-6 py-3">Order name</th>
-              <th scope="col" className="px-6 py-3">Status</th>
-              <th scope="col" className="px-6 py-3">Total Price</th>
-              <th scope="col" className="px-6 py-3">Date</th>
-              <th scope="col" className="px-6 py-3">Order Id</th>
-              <th scope="col" className="px-6 py-3">Action</th>
+              <th scope="col" className="px-4 py-3">Patient</th>
+              <th scope="col" className="px-4 py-3">Doctor</th>
+              <th scope="col" className="px-4 py-3">Status</th>
+              <th scope="col" className="px-4 py-3">Complaint</th>
+              <th scope="col" className="px-4 py-3">Time</th>
+              <th scope="col" className="px-4 py-3">Date</th>
+              <th scope="col" className="px-4 py-3">Action</th>
             </tr>
           </thead>
           <tbody>
-            {orders.length > 0 ? (
-              orders.map((order) => (
-                <tr key={order.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
-                  <td className="px-6 py-4">
-                    <b>{order.items.length} items</b>
+            {appointments.length === 0 ? (
+              <tr className="bg-white border-b">
+                <td colSpan={7} className="px-4 py-4 text-center">
+                  No pending appointments yet
+                </td>
+              </tr>
+            ) : (
+              appointments.map((appointment) => (
+                <tr key={appointment.id} className="bg-white border-b hover:bg-gray-50">
+                  <td className="px-4 py-4 font-medium text-gray-900">
+                    <div className="flex items-center">
+                      <FiUser className="mr-2 text-gray-400" />
+                      {appointment.patientName}
+                    </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <StatusBadge status={order.status} />
+                  <td className="px-4 py-4">
+                    {appointment.doctorName || 'Unassigned'}
                   </td>
-                  <td className="px-6 py-4">
-                    <b>NGN{order.totalAmount.toLocaleString()}</b>
+                  <td className="px-4 py-4">
+                    <span className='bg-yellow-100 text-yellow-800 rounded-full px-3 py-1 text-xs flex items-center w-fit'>
+                      <FiAlertCircle className="mr-1" /> Pending
+                    </span>
                   </td>
-                  <td className="px-6 py-4">
-                    {order.createdAt.toDate().toLocaleDateString()}
+                  <td className="px-4 py-4 max-w-xs truncate">
+                    {appointment.complain || 'No complaint noted'}
                   </td>
-                  <td className="px-6 py-4">
-                    {order.id.slice(0, 8) || 'N/A'}
+                  <td className="px-4 py-4">
+                    {formatTimeRange(appointment.startTime, appointment.endTime)}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4">{formatDate(appointment.startTime)}</td>
+                  <td className="px-4 py-4">
                     <Link
-                      href={`/orders/details/${order.id}`}
-                      className="btn bg-blue text-white px-5 py-2 pb-2 rounded-2xl hover:bg-blue-600 transition"
+                      href={`/appointments/details/${appointment.id}`}
+                      className='inline-flex items-center bg-blue-500 text-white px-3 py-1 rounded-lg text-sm'
                     >
-                      view
+                      <FiEye className="mr-1" /> View
                     </Link>
                   </td>
                 </tr>
               ))
-            ) : (
-              <tr>
-                <td colSpan={6} className="px-6 py-4 text-center">
-                  No orders found
-                </td>
-              </tr>
             )}
           </tbody>
         </table>

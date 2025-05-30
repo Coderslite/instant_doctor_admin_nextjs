@@ -8,6 +8,7 @@ export interface OrderModel {
     createdAt: Timestamp;
     remaining: string;
     pharmacyId: string;
+    pharmacyName?:string;
     userId: string;
     items: ItemModel[];
     status: 'pending' | 'confirmed' | 'delivering' | 'completed' | 'cancelled';

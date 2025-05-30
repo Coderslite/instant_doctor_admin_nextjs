@@ -165,7 +165,7 @@ const StockDetailPage = () => {
     return (
         <div className="p-4 max-w-6xl mx-auto">
             <div className="flex items-center mb-6">
-                <Link href="/stocks" className="mr-4 p-2 rounded-full hover:bg-gray-100">
+                <Link href="/stocks/active" className="mr-4 p-2 rounded-full hover:bg-gray-100">
                     <RiArrowLeftLine className="text-2xl" />
                 </Link>
                 <h1 className="text-3xl font-bold">{stockItem.name}</h1>

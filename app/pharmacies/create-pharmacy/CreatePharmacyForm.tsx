@@ -17,7 +17,7 @@ const CreatePharmacyForm = () => {
         longitude: '',
         email: '',
         phoneNumber: '',
-        deliveryFee: '',
+        deliveryFee: 100,
         password: '',
         confirmPassword: ''
     });
@@ -96,7 +96,7 @@ const CreatePharmacyForm = () => {
                 },
                 email: formData.email,
                 phoneNumber: formData.phoneNumber,
-                deliveryFee: formData.deliveryFee || '0',
+                deliveryFee: formData.deliveryFee || 0,
                 imageFile: imageFile || undefined,
                 password: formData.password,
                 status: 'active',
@@ -226,7 +226,7 @@ const CreatePharmacyForm = () => {
                             </div>
                             {imagePreview && (
                                 <div className="w-16 h-16 rounded-md overflow-hidden border border-gray-200">
-                                    <Image
+                                    <img
                                         src={imagePreview}
                                         alt="Preview"
                                         className="w-full h-full object-cover"

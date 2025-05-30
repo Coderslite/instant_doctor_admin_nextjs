@@ -18,6 +18,23 @@ async function getDoctors() {
     })) as UserModel[];
 }
 
+async function getPendingDoctors() {
+    const q = query(
+        userCol,
+        // orderBy('createdAt', 'desc')
+        where('role', '==', 'Doctor'),
+        where('status', '==', 'pending')
+    );
+
+    const querySnapshot = await getDocs(q);
+    console.log(querySnapshot.docs.length);
+    return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    })) as UserModel[];
+}
+
 export {
     getDoctors,
+    getPendingDoctors,
 };
