@@ -24,6 +24,7 @@ async function getUserById(id: string): Promise<UserModel | null> {
             // Add any other required properties from UserModel
             ...userData // This spreads any additional properties that might be in the document
             ,
+
             certificate: userData.certificate,
             experience: userData.experience,
             isAvailable: userData.isAvailable,
@@ -33,6 +34,7 @@ async function getUserById(id: string): Promise<UserModel | null> {
             specialization: userData.specialization,
             workAddress: userData.workAddress,
             yearHousemanship: userData.yearHousemanship,
+            balance: userData.balance,
         };
 
         return user;

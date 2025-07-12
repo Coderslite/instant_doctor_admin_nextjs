@@ -1,6 +1,7 @@
 import { Timestamp } from "firebase/firestore";
 
 export interface UserModel {
+    balance: number;
     id: string;
     firstname: string;
     lastname: string;

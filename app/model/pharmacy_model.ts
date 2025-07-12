@@ -13,6 +13,8 @@ export interface PharmacyModel {
     password: string; // Added password field
     createdAt: Timestamp;
     status: string;
+    balance: number;
+
 }
 
 export interface NewPharmacyData {
@@ -27,5 +29,6 @@ export interface NewPharmacyData {
     phoneNumber: string;
     imageFile?: File;
     password: string; // Added password field
-    status:string;
+    status: string;
+    balance: number
 }

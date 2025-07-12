@@ -27,6 +27,7 @@ export const getPharmacies = async (): Promise<PharmacyModel[]> => {
                 password: data.password,
                 createdAt: data.createdAt as Timestamp,
                 status: data.status,
+                balance: data.balance
             })
         })
 
@@ -77,6 +78,7 @@ export const getPharmacyById = async (id: string): Promise<PharmacyModel | null>
                 image: data.image,
                 password: data.password,
                 createdAt: data.createdAt as Timestamp,
+                balance: data.balance,
                 status: data.status,
             }
         }
@@ -112,6 +114,7 @@ export const createPharmacy = async (pharmacyData: NewPharmacyData): Promise<str
             image: imageUrl || '',
             password: pharmacyData.password, // Include password
             createdAt: Timestamp.now(),
+            balance: pharmacyData.balance,
             status: pharmacyData.status,
         };
 

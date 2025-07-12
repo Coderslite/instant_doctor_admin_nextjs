@@ -99,6 +99,7 @@ const CreatePharmacyForm = () => {
                 deliveryFee: formData.deliveryFee || 0,
                 imageFile: imageFile || undefined,
                 password: formData.password,
+                balance: 0,
                 status: 'active',
             };
 

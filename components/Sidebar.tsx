@@ -1,12 +1,14 @@
 'use client'
 import Image from 'next/image'
 import Link from 'next/link';
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
     AiOutlineMenu,
     AiOutlineHome,
     AiOutlineShopping,
-    AiOutlineStock
+    AiOutlineStock,
+    AiOutlineWallet,
+    AiOutlineMoneyCollect
 } from "react-icons/ai";
 import {
     FiPackage,
@@ -14,11 +16,13 @@ import {
     FiXCircle,
     FiCheckCircle,
     FiUser,
-    FiLogOut
+    FiLogOut,
+    FiChevronDown,
+    FiChevronRight,
+    FiDollarSign
 } from 'react-icons/fi';
 import {
     MdDashboard,
-    MdKeyboardArrowDown,
     MdInventory,
     MdOutlineInventory2,
     MdOutlineDisabledByDefault,
@@ -29,21 +33,36 @@ import {
     BsBoxSeam,
     BsClockHistory
 } from 'react-icons/bs';
-import toast from 'react-hot-toast';
-import { useRouter } from 'next/navigation';
-import { FaRegUser } from 'react-icons/fa';
-import { FaUserDoctor } from 'react-icons/fa6';
+import { FaRegUser, FaUserNurse } from 'react-icons/fa';
 import { GrSchedule } from 'react-icons/gr';
 import { RiCalendarScheduleFill } from 'react-icons/ri';
+import toast from 'react-hot-toast';
+import { useRouter, usePathname } from 'next/navigation';
 
-const Sidebar = () => {
+const AdminSidebar = () => {
     const [isUsersOpen, setIsUsersOpen] = useState(false);
     const [isAppointmentsOpen, setIsAppointmentsOpen] = useState(false);
     const [isStockOpen, setIsStockOpen] = useState(false);
     const [isOrderOpen, setIsOrderOpen] = useState(false);
+    const [isWithdrawalsOpen, setIsWithdrawalsOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [isMobileSidebarVisible, setIsMobileSidebarVisible] = useState(false);
-    const router = useRouter()
+    const [isHovered, setIsHovered] = useState(false);
+    const router = useRouter();
+    const pathname = usePathname();
+
+    // Handle window resize
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth >= 768) {
+                setIsMobileSidebarVisible(false);
+            }
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     const toggleSidebar = () => {
         if (window.innerWidth < 768) {
             setIsMobileSidebarVisible(!isMobileSidebarVisible);
@@ -65,17 +84,13 @@ const Sidebar = () => {
     );
 
     const handleLogout = () => {
-        // Clear cookies
+        // Clear admin cookies
         document.cookie = 'adminId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         document.cookie = 'adminName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
 
-        // Show success message
         toast.success('Logged out successfully');
-
-        // Redirect to login page
         router.push('/login');
 
-        // Close mobile sidebar if open
         if (window.innerWidth < 768) {
             setIsMobileSidebarVisible(false);
         }
@@ -83,159 +98,201 @@ const Sidebar = () => {
 
     return (
         <>
-            {/* Toggle Button - always visible */}
-            {!isMobileSidebarVisible && (
-                <button onClick={toggleSidebar} className='md:hidden p-3 fixed top-4 left-4 z-50 bg-white rounded shadow'>
-                    <AiOutlineMenu className='text-2xl text-black' />
-                </button>
-            )}
+            {/* Mobile Toggle Button */}
+            <button
+                onClick={toggleSidebar}
+                className='md:hidden p-3 fixed top-4 left-4 z-50 bg-white rounded-lg shadow-md hover:shadow-lg transition-all'
+            >
+                <AiOutlineMenu className='text-xl text-gray-800' />
+            </button>
 
-            {/* Backdrop for mobile */}
+            {/* Mobile Backdrop */}
             {isMobileSidebarVisible && (
                 <div
                     onClick={() => setIsMobileSidebarVisible(false)}
-                    className="fixed inset-0 bg-black/55 z-30 md:hidden"
+                    className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 md:hidden"
                 />
             )}
 
-            {/* Sidebar */}
-            <div className={`
-                h-screen bg-gray dark:bg-black dark:text-white text-black p-5 transition-all duration-300
-                ${isSidebarOpen ? 'w-[250px]' : 'w-[70px]'}
-                ${isMobileSidebarVisible ? 'left-0' : '-left-full'}
-                md:static fixed top-0 z-40 overflow-y-auto
-            `}>
-                <div className='flex flex-col justify-between h-full'>
-                    {/* Header */}
-                    <div className='header'>
-                        <div className='flex justify-between items-center'>
-                            {isSidebarOpen && (
-                                <Image src={'/logo.png'} alt='logo' height={100} width={150} />
-                            )}
-                            <button onClick={toggleSidebar} className="hidden md:block">
-                                <AiOutlineMenu className='text-2xl text-black' />
-                            </button>
-                        </div>
+            {/* Sidebar Container */}
+            <div
+                className={`
+          h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700
+          text-gray-800 dark:text-gray-200 transition-all duration-300 ease-in-out
+          ${isSidebarOpen ? 'w-64' : 'w-20'}
+          ${isMobileSidebarVisible ? 'left-0' : '-left-full'}
+          md:static fixed top-0 z-50 overflow-y-auto
+        `}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+            >
+                <div className='flex flex-col h-full'>
+                    {/* Sidebar Header */}
+                    <div className='p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between'>
+                        {isSidebarOpen ? (
+                            <div className="flex items-center">
+                                <Image
+                                    src={'/logo.png'}
+                                    alt='logo'
+                                    height={40}
+                                    width={150}
+                                    className="h-10 object-contain"
+                                />
+                            </div>
+                        ) : (
+                            <div className="flex justify-center w-full">
+                                <Image
+                                    src={'/logo-icon.png'}
+                                    alt='logo'
+                                    height={40}
+                                    width={40}
+                                    className="h-10 w-10 object-contain"
+                                />
+                            </div>
+                        )}
 
-                        <ul className='mt-9'>
+                        <button
+                            onClick={toggleSidebar}
+                            className="hidden md:block p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                        >
+                            <AiOutlineMenu className='text-xl' />
+                        </button>
+                    </div>
+
+                    {/* Navigation Menu */}
+                    <nav className="flex-1 px-3 py-4 overflow-y-auto">
+                        <ul className='space-y-1'>
                             {/* Dashboard */}
-                            <li className='mb-3 border-black/10 border-b-2 pb-2'>
-                                <div className=' hover:bg-primary rounded-lg '>
-                                    <NavLink href="/">
-                                        <div className='flex gap-2 items-center p-2'>
-                                            <AiOutlineHome className="text-xl" />
-                                            {isSidebarOpen && <span>Dashboard</span>}
-                                        </div>
-                                    </NavLink>
-                                </div>
+                            <li>
+                                <NavLink href="/">
+                                    <div className={`
+                    flex items-center p-3 rounded-lg 
+                    ${pathname === '/' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : ''}
+                    hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+                  `}>
+                                        <AiOutlineHome className="text-xl min-w-[24px]" />
+                                        {(isSidebarOpen || isHovered) && <span className="ml-3">Dashboard</span>}
+                                    </div>
+                                </NavLink>
                             </li>
 
-                            <li className='mb-3 border-black/10 border-b-2 pb-2'>
-                                <div className=' hover:bg-primary rounded-lg '>
-                                    <NavLink href="/pharmacies">
-                                        <div className='flex gap-2 items-center p-2'>
-                                            <MdLocalPharmacy className="text-xl" />
-                                            {isSidebarOpen && <span>Pharmacies</span>}
-                                        </div>
-                                    </NavLink>
-                                </div>
+                            {/* Pharmacies */}
+                            <li>
+                                <NavLink href="/pharmacies">
+                                    <div className={`
+                    flex items-center p-3 rounded-lg 
+                    ${pathname === '/pharmacies' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : ''}
+                    hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+                  `}>
+                                        <MdLocalPharmacy className="text-xl min-w-[24px]" />
+                                        {(isSidebarOpen || isHovered) && <span className="ml-3">Pharmacies</span>}
+                                    </div>
+                                </NavLink>
                             </li>
 
-                            {/* Users */}
-                            <li className=' mb-3 rounded-sm border-black/10 border-b-2 pb-2'>
+                            {/* Users Section */}
+                            <li>
                                 <button
                                     type="button"
                                     onClick={() => setIsUsersOpen(!isUsersOpen)}
-                                    className="flex p-2 items-center w-full text-base transition duration-75 rounded-lg group hover:bg-primary"
+                                    className={`
+                    flex items-center justify-between w-full p-3 rounded-lg 
+                    hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+                  `}
                                 >
-                                    <FaRegUser className="text-xl" />
-                                    {isSidebarOpen && (
-                                        <>
-                                            <span className="flex-1 ms-3 text-left whitespace-nowrap">Users</span>
-                                            <MdKeyboardArrowDown className={`${isUsersOpen ? 'rotate-180' : ''} transition-transform`} />
-                                        </>
+                                    <div className="flex items-center">
+                                        <FaRegUser className="text-xl min-w-[24px]" />
+                                        {(isSidebarOpen || isHovered) && <span className="ml-3">Users</span>}
+                                    </div>
+                                    {(isSidebarOpen || isHovered) && (
+                                        isUsersOpen ? <FiChevronDown /> : <FiChevronRight />
                                     )}
                                 </button>
-                                {isUsersOpen && isSidebarOpen && (
-                                    <ul className="py-2 space-y-2">
+
+                                {(isUsersOpen && (isSidebarOpen || isHovered)) && (
+                                    <ul className="py-1 pl-4 ml-5 space-y-1 border-l border-gray-200 dark:border-gray-700">
                                         <li>
                                             <NavLink href="/users/patients">
-                                                <div className="block pl-11 hover:bg-primary p-1 rounded-sm border-black/10 border-b-2">
-                                                    <div className='flex gap-2'>
-                                                        <FaRegUser className="text-xl" />
-                                                        <span>Patients</span>
-                                                    </div>
+                                                <div className={`
+                          flex items-center p-2 rounded-lg 
+                          ${pathname === '/users/patients' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : ''}
+                          hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+                        `}>
+                                                    <FaRegUser className="text-lg min-w-[20px]" />
+                                                    <span className="ml-2">Patients</span>
                                                 </div>
                                             </NavLink>
                                         </li>
                                         <li>
                                             <NavLink href="/users/doctors">
-                                                <div className="block pl-11 hover:bg-primary p-1 rounded-sm border-black/10 border-b-2">
-                                                    <div className='flex gap-2'>
-                                                        <FaUserDoctor className="text-xl" />
-                                                        <span>Doctors</span>
-                                                    </div>
+                                                <div className={`
+                          flex items-center p-2 rounded-lg 
+                          ${pathname === '/users/doctors' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : ''}
+                          hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+                        `}>
+                                                    <FaUserNurse className="text-lg min-w-[20px]" />
+                                                    <span className="ml-2">Doctors</span>
                                                 </div>
                                             </NavLink>
                                         </li>
-                                        {/* <li>
-                                            <NavLink href="/users/delivery-boy">
-                                                <div className="block pl-11 hover:bg-primary p-1 rounded-sm border-black/10">
-                                                    <div className='flex gap-2'>
-                                                        <MdOutlineDisabledByDefault className="text-xl" />
-                                                        <span>Delivery Agents</span>
-                                                    </div>
-                                                </div>
-                                            </NavLink>
-                                        </li> */}
                                     </ul>
                                 )}
                             </li>
 
-                            {/* Users */}
-                            <li className=' mb-3 rounded-sm border-black/10 border-b-2 pb-2'>
+                            {/* Appointments Section */}
+                            <li>
                                 <button
                                     type="button"
                                     onClick={() => setIsAppointmentsOpen(!isAppointmentsOpen)}
-                                    className="flex p-2 items-center w-full text-base transition duration-75 rounded-lg group hover:bg-primary"
+                                    className={`
+                    flex items-center justify-between w-full p-3 rounded-lg 
+                    hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+                  `}
                                 >
-                                    <GrSchedule className="text-xl" />
-                                    {isSidebarOpen && (
-                                        <>
-                                            <span className="flex-1 ms-3 text-left whitespace-nowrap">Appointments</span>
-                                            <MdKeyboardArrowDown className={`${isAppointmentsOpen ? 'rotate-180' : ''} transition-transform`} />
-                                        </>
+                                    <div className="flex items-center">
+                                        <GrSchedule className="text-xl min-w-[24px]" />
+                                        {(isSidebarOpen || isHovered) && <span className="ml-3">Appointments</span>}
+                                    </div>
+                                    {(isSidebarOpen || isHovered) && (
+                                        isAppointmentsOpen ? <FiChevronDown /> : <FiChevronRight />
                                     )}
                                 </button>
-                                {isAppointmentsOpen && isSidebarOpen && (
-                                    <ul className="py-2 space-y-2">
+
+                                {(isAppointmentsOpen && (isSidebarOpen || isHovered)) && (
+                                    <ul className="py-1 pl-4 ml-5 space-y-1 border-l border-gray-200 dark:border-gray-700">
                                         <li>
                                             <NavLink href="/appointments/pending">
-                                                <div className="block pl-11 hover:bg-primary p-1 rounded-sm border-black/10 border-b-2">
-                                                    <div className='flex gap-2'>
-                                                        <RiCalendarScheduleFill className="text-xl" />
-                                                        <span>Pending</span>
-                                                    </div>
+                                                <div className={`
+                          flex items-center p-2 rounded-lg 
+                          ${pathname === '/appointments/pending' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : ''}
+                          hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+                        `}>
+                                                    <RiCalendarScheduleFill className="text-lg min-w-[20px]" />
+                                                    <span className="ml-2">Pending</span>
                                                 </div>
                                             </NavLink>
                                         </li>
                                         <li>
                                             <NavLink href="/appointments/ongoing">
-                                                <div className="block pl-11 hover:bg-primary p-1 rounded-sm border-black/10 border-b-2">
-                                                    <div className='flex gap-2'>
-                                                        <GrSchedule className="text-xl" />
-                                                        <span>Ongoing</span>
-                                                    </div>
+                                                <div className={`
+                          flex items-center p-2 rounded-lg 
+                          ${pathname === '/appointments/ongoing' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : ''}
+                          hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+                        `}>
+                                                    <GrSchedule className="text-lg min-w-[20px]" />
+                                                    <span className="ml-2">Ongoing</span>
                                                 </div>
                                             </NavLink>
                                         </li>
                                         <li>
                                             <NavLink href="/appointments/cancelled">
-                                                <div className="block pl-11 hover:bg-primary p-1 rounded-sm border-black/10">
-                                                    <div className='flex gap-2'>
-                                                        <MdOutlineCancelScheduleSend className="text-xl"  />
-                                                        <span>Cancelled</span>
-                                                    </div>
+                                                <div className={`
+                          flex items-center p-2 rounded-lg 
+                          ${pathname === '/appointments/cancelled' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : ''}
+                          hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+                        `}>
+                                                    <MdOutlineCancelScheduleSend className="text-lg min-w-[20px]" />
+                                                    <span className="ml-2">Cancelled</span>
                                                 </div>
                                             </NavLink>
                                         </li>
@@ -243,101 +300,170 @@ const Sidebar = () => {
                                 )}
                             </li>
 
-                            {/* Stocks */}
-                            <li className=' mb-3 rounded-sm border-black/10 border-b-2 pb-2'>
+                            {/* Stocks Section */}
+                            <li>
                                 <button
                                     type="button"
                                     onClick={() => setIsStockOpen(!isStockOpen)}
-                                    className="flex p-2 items-center w-full text-base transition duration-75 rounded-lg group hover:bg-primary"
+                                    className={`
+                    flex items-center justify-between w-full p-3 rounded-lg 
+                    hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+                  `}
                                 >
-                                    <MdInventory className="text-xl" />
-                                    {isSidebarOpen && (
-                                        <>
-                                            <span className="flex-1 ms-3 text-left whitespace-nowrap">Stocks</span>
-                                            <MdKeyboardArrowDown className={`${isStockOpen ? 'rotate-180' : ''} transition-transform`} />
-                                        </>
+                                    <div className="flex items-center">
+                                        <MdInventory className="text-xl min-w-[24px]" />
+                                        {(isSidebarOpen || isHovered) && <span className="ml-3">Stocks</span>}
+                                    </div>
+                                    {(isSidebarOpen || isHovered) && (
+                                        isStockOpen ? <FiChevronDown /> : <FiChevronRight />
                                     )}
                                 </button>
-                                {isStockOpen && isSidebarOpen && (
-                                    <ul className="py-2 space-y-2">
+
+                                {(isStockOpen && (isSidebarOpen || isHovered)) && (
+                                    <ul className="py-1 pl-4 ml-5 space-y-1 border-l border-gray-200 dark:border-gray-700">
                                         <li>
                                             <NavLink href="/stocks/active">
-                                                <div className="block pl-11 hover:bg-primary p-1 rounded-sm border-black/10 border-b-2">
-                                                    <div className='flex gap-2'>
-                                                        <MdOutlineInventory2 className="text-xl" />
-                                                        <span>Active Stock</span>
-                                                    </div>
+                                                <div className={`
+                          flex items-center p-2 rounded-lg 
+                          ${pathname === '/stocks/active' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : ''}
+                          hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+                        `}>
+                                                    <MdOutlineInventory2 className="text-lg min-w-[20px]" />
+                                                    <span className="ml-2">Active Stock</span>
                                                 </div>
                                             </NavLink>
                                         </li>
                                         <li>
                                             <NavLink href="/stocks/out-of-stock">
-                                                <div className="block pl-11 hover:bg-primary p-1 rounded-sm border-black/10 border-b-2">
-                                                    <div className='flex gap-2'>
-                                                        <AiOutlineStock className="text-xl" />
-                                                        <span>Out of Stock</span>
-                                                    </div>
+                                                <div className={`
+                          flex items-center p-2 rounded-lg 
+                          ${pathname === '/stocks/out-of-stock' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : ''}
+                          hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+                        `}>
+                                                    <AiOutlineStock className="text-lg min-w-[20px]" />
+                                                    <span className="ml-2">Out of Stock</span>
                                                 </div>
                                             </NavLink>
                                         </li>
-                                        {/* <li>
-                                            <NavLink href="/stocks/disabled">
-                                                <div className="block pl-11 hover:bg-primary p-1 rounded-sm border-black/10">
-                                                    <div className='flex gap-2'>
-                                                        <MdOutlineDisabledByDefault className="text-xl" />
-                                                        <span>Disabled Stock</span>
-                                                    </div>
-                                                </div>
-                                            </NavLink>
-                                        </li> */}
                                     </ul>
                                 )}
                             </li>
 
-                            {/* Orders */}
-                            <li className='mb-3 rounded-sm border-black/10 border-b-2 pb-2'>
+                            {/* Orders Section */}
+                            <li>
                                 <button
                                     type="button"
                                     onClick={() => setIsOrderOpen(!isOrderOpen)}
-                                    className="flex p-2 items-center w-full text-base transition duration-75 rounded-lg group hover:bg-primary"
+                                    className={`
+                    flex items-center justify-between w-full p-3 rounded-lg 
+                    hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+                  `}
                                 >
-                                    <AiOutlineShopping className="text-xl" />
-                                    {isSidebarOpen && (
-                                        <>
-                                            <span className="flex-1 ms-3 text-left whitespace-nowrap">Orders</span>
-                                            <MdKeyboardArrowDown className={`${isOrderOpen ? 'rotate-180' : ''} transition-transform`} />
-                                        </>
+                                    <div className="flex items-center">
+                                        <AiOutlineShopping className="text-xl min-w-[24px]" />
+                                        {(isSidebarOpen || isHovered) && <span className="ml-3">Orders</span>}
+                                    </div>
+                                    {(isSidebarOpen || isHovered) && (
+                                        isOrderOpen ? <FiChevronDown /> : <FiChevronRight />
                                     )}
                                 </button>
-                                {isOrderOpen && isSidebarOpen && (
-                                    <ul className="py-2 space-y-2 rounded-sm">
+
+                                {(isOrderOpen && (isSidebarOpen || isHovered)) && (
+                                    <ul className="py-1 pl-4 ml-5 space-y-1 border-l border-gray-200 dark:border-gray-700">
                                         <li>
                                             <NavLink href="/orders/delivered">
-                                                <div className="block pl-11 hover:bg-primary p-1 rounded-sm border-black/10 border-b-2">
-                                                    <div className='flex gap-2'>
-                                                        <FiTruck className="text-xl" />
-                                                        <span>Delivered</span>
-                                                    </div>
+                                                <div className={`
+                          flex items-center p-2 rounded-lg 
+                          ${pathname === '/orders/delivered' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : ''}
+                          hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+                        `}>
+                                                    <FiTruck className="text-lg min-w-[20px]" />
+                                                    <span className="ml-2">Delivered</span>
                                                 </div>
                                             </NavLink>
                                         </li>
                                         <li>
                                             <NavLink href="/orders/pending">
-                                                <div className="block pl-11 hover:bg-primary p-1 rounded-sm border-black/10 border-b-2">
-                                                    <div className='flex gap-2'>
-                                                        <BsClockHistory className="text-xl" />
-                                                        <span>Pending</span>
-                                                    </div>
+                                                <div className={`
+                          flex items-center p-2 rounded-lg 
+                          ${pathname === '/orders/pending' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : ''}
+                          hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+                        `}>
+                                                    <BsClockHistory className="text-lg min-w-[20px]" />
+                                                    <span className="ml-2">Pending</span>
                                                 </div>
                                             </NavLink>
                                         </li>
                                         <li>
                                             <NavLink href="/orders/cancelled">
-                                                <div className="block pl-11 hover:bg-primary p-1 rounded-sm border-black/10">
-                                                    <div className='flex gap-2'>
-                                                        <FiXCircle className="text-xl" />
-                                                        <span>Cancelled</span>
-                                                    </div>
+                                                <div className={`
+                          flex items-center p-2 rounded-lg 
+                          ${pathname === '/orders/cancelled' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : ''}
+                          hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+                        `}>
+                                                    <FiXCircle className="text-lg min-w-[20px]" />
+                                                    <span className="ml-2">Cancelled</span>
+                                                </div>
+                                            </NavLink>
+                                        </li>
+                                    </ul>
+                                )}
+                            </li>
+
+                            {/* Withdrawals Section */}
+                            <li>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsWithdrawalsOpen(!isWithdrawalsOpen)}
+                                    className={`
+                    flex items-center justify-between w-full p-3 rounded-lg 
+                    hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+                  `}
+                                >
+                                    <div className="flex items-center">
+                                        <AiOutlineMoneyCollect className="text-xl min-w-[24px]" />
+                                        {(isSidebarOpen || isHovered) && <span className="ml-3">Withdrawals</span>}
+                                    </div>
+                                    {(isSidebarOpen || isHovered) && (
+                                        isWithdrawalsOpen ? <FiChevronDown /> : <FiChevronRight />
+                                    )}
+                                </button>
+
+                                {(isWithdrawalsOpen && (isSidebarOpen || isHovered)) && (
+                                    <ul className="py-1 pl-4 ml-5 space-y-1 border-l border-gray-200 dark:border-gray-700">
+                                        <li>
+                                            <NavLink href="/withdrawals/pending">
+                                                <div className={`
+                          flex items-center p-2 rounded-lg 
+                          ${pathname === '/withdrawals/pending' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : ''}
+                          hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+                        `}>
+                                                    <BsClockHistory className="text-lg min-w-[20px]" />
+                                                    <span className="ml-2">Pending</span>
+                                                </div>
+                                            </NavLink>
+                                        </li>
+                                        <li>
+                                            <NavLink href="/withdrawals/completed">
+                                                <div className={`
+                          flex items-center p-2 rounded-lg 
+                          ${pathname === '/withdrawals/completed' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : ''}
+                          hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+                        `}>
+                                                    <FiCheckCircle className="text-lg min-w-[20px]" />
+                                                    <span className="ml-2">Completed</span>
+                                                </div>
+                                            </NavLink>
+                                        </li>
+                                        <li>
+                                            <NavLink href="/withdrawals/rejected">
+                                                <div className={`
+                          flex items-center p-2 rounded-lg 
+                          ${pathname === '/withdrawals/rejected' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : ''}
+                          hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+                        `}>
+                                                    <FiXCircle className="text-lg min-w-[20px]" />
+                                                    <span className="ml-2">Rejected</span>
                                                 </div>
                                             </NavLink>
                                         </li>
@@ -345,27 +471,37 @@ const Sidebar = () => {
                                 )}
                             </li>
                         </ul>
-                    </div>
+                    </nav>
 
-                    {/* Footer */}
-                    <div className="footer mt-auto">
-                        <div className='flex gap-1 mb-3 items-center'>
-                            <FiUser className="text-xl" />
-                            <Link href="/profile" className='text-sm font-semibold'>Admin Profile</Link>
-                        </div>
+                    {/* Sidebar Footer */}
+                    <div className="p-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
+                        <NavLink href="/profile">
+                            <div className={`
+                flex items-center p-2 rounded-lg 
+                ${pathname === '/profile' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : ''}
+                hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+              `}>
+                                <FiUser className="text-lg min-w-[20px]" />
+                                {(isSidebarOpen || isHovered) && <span className="ml-2">Admin Profile</span>}
+                            </div>
+                        </NavLink>
+
                         <button
                             onClick={handleLogout}
-                            className='bg-red-600 rounded p-2 text-white w-full flex items-center justify-center gap-2 hover:bg-red-700 transition-colors'
+                            className={`
+                flex items-center justify-center w-full p-2 rounded-lg 
+                bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400
+                hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors
+              `}
                         >
-                            <FiLogOut className="text-xl" />
-                            {isSidebarOpen && 'Logout'}
+                            <FiLogOut className="text-lg min-w-[20px]" />
+                            {(isSidebarOpen || isHovered) && <span className="ml-2">Logout</span>}
                         </button>
                     </div>
-
                 </div>
             </div>
         </>
     );
 };
 
-export default Sidebar;
+export default AdminSidebar;

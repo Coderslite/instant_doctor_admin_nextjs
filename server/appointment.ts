@@ -1,7 +1,7 @@
 import { AppointmentModel } from "@/app/model/appointment_model";
 import { UserModel } from "@/app/model/user_model";
 import { db } from "@/firebase/clientApp";
-import { collection, getDocs, query, where, orderBy, doc, getDoc, limit, updateDoc } from "firebase/firestore";
+import { collection, getDocs, query, where, orderBy, doc, getDoc, limit, updateDoc, or, and } from "firebase/firestore";
 import { Timestamp } from "firebase/firestore";
 
 const appointmentCol = collection(db, "Appointments");
@@ -169,10 +169,16 @@ async function getPatientName(patientId: string): Promise<string> {
 export async function getPendingAppointments(): Promise<(AppointmentModel & { doctorName: string; patientName: string })[]> {
     const q = query(
         appointmentCol,
-        where('status', '==', 'pending'),
-        where('isPaid', '==', true),
+        and(
+            where('status', '==', 'pending'),
+            or(
+                where('isPaid', '==', true),
+                where('isTrial', '==', true)
+            )
+        ),
         orderBy('startTime', 'asc')
     );
+
 
     const snapshot = await getDocs(q);
     const appointmentsWithNames = await Promise.all(
@@ -192,6 +198,7 @@ export async function getPendingAppointments(): Promise<(AppointmentModel & { do
                 startTime: data.startTime || Timestamp.now(),
                 endTime: data.endTime || Timestamp.now(),
                 isPaid: data.isPaid || false,
+                isTrial: data.isTrial || false, // Include isTrial in returned data
                 createdAt: data.createdAt || Timestamp.now(),
                 status: data.status,
             };
