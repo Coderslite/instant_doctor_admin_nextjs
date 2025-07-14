@@ -3,9 +3,11 @@ import { Timestamp } from 'firebase/firestore'
 export interface Withdrawal {
     id: string;
     date: Timestamp;
-    description: string;
     amount: number;
     bankName: string;
+    bankCode:string;
+    recipientCode:string;
+    reference:string;
     accountNumber: string;
     accountName: string;
     type: 'pharmacy' | 'doctor';
@@ -16,6 +18,7 @@ export interface Withdrawal {
     rejectedBy?: string;
     rejectedAt?: Timestamp;
     rejectionReason?: string;
+    createdAt?:Timestamp;
     user?: {
         name: string;
         email: string;

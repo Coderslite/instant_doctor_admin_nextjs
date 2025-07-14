@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { FiClock, FiEye, FiX } from 'react-icons/fi'
 import { UserModel } from '@/app/model/user_model'
 import { getDoctors } from '@/server/doctors'
+import { formatDate } from '@/utils/formatTime'
 
 
 const Doctors = () => {
@@ -29,25 +30,6 @@ const Doctors = () => {
         fetchdoctors()
     }, [])
 
-    const formatDate = (timestamp: Timestamp) => {
-        const date = new Date(timestamp.seconds * 1000)
-        const now = new Date()
-
-        // If today, show time
-        if (date.toDateString() === now.toDateString()) {
-            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }
-
-        // If yesterday, show "Yesterday"
-        const yesterday = new Date(now)
-        yesterday.setDate(yesterday.getDate() - 1)
-        if (date.toDateString() === yesterday.toDateString()) {
-            return 'Yesterday'
-        }
-
-        // Otherwise show full date
-        return date.toLocaleDateString()
-    }
 
     const filtereddoctors = doctors.filter(patient => {
         const searchLower = searchTerm.toLowerCase()

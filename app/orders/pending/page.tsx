@@ -8,6 +8,7 @@ import { FiClock, FiEye, FiAlertCircle } from 'react-icons/fi'
 import { getPharmacyId } from '@/server/auth'
 import { getPharmacyNameById } from '@/server/pharmacies'
 import { OrderModel } from '@/app/model/order_model'
+import { formatDate } from '@/utils/formatTime'
 
 interface OrderItem {
     id: string
@@ -47,25 +48,6 @@ const PendingOrders = () => {
         fetchOrders()
     }, [])
 
-    const formatDate = (timestamp: Timestamp) => {
-        const date = new Date(timestamp.seconds * 1000)
-        const now = new Date()
-
-        // If today, show time
-        if (date.toDateString() === now.toDateString()) {
-            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }
-
-        // If yesterday, show "Yesterday"
-        const yesterday = new Date(now)
-        yesterday.setDate(yesterday.getDate() - 1)
-        if (date.toDateString() === yesterday.toDateString()) {
-            return 'Yesterday'
-        }
-
-        // Otherwise show full date
-        return date.toLocaleDateString()
-    }
 
     const filteredOrders = orders.filter(order => {
         const searchLower = searchTerm.toLowerCase()

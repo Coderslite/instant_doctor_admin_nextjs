@@ -8,6 +8,7 @@ import { toast } from 'react-toastify'
 import { useRouter } from 'next/navigation'
 import { Withdrawal } from '@/app/model/withdraw_model'
 import { Timestamp } from 'firebase/firestore'
+import { formatDate } from '@/utils/formatTime'
 
 const CompletedWithdrawals = () => {
     const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([])
@@ -44,25 +45,6 @@ const CompletedWithdrawals = () => {
         fetchWithdrawals()
     }, [])
 
-    const formatDate = (timestamp: Timestamp) => {
-        const date = new Date(timestamp.seconds * 1000)
-        const now = new Date()
-
-        // If today, show time
-        if (date.toDateString() === now.toDateString()) {
-            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }
-
-        // If yesterday, show "Yesterday"
-        const yesterday = new Date(now)
-        yesterday.setDate(yesterday.getDate() - 1)
-        if (date.toDateString() === yesterday.toDateString()) {
-            return 'Yesterday'
-        }
-
-        // Otherwise show full date
-        return date.toLocaleDateString()
-    }
 
     const filteredWithdrawals = withdrawals.filter(withdrawal => {
         const searchLower = searchTerm.toLowerCase()

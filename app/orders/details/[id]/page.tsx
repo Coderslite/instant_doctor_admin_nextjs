@@ -9,6 +9,7 @@ import { getUserById } from '@/server/user';
 import { Timestamp } from 'firebase/firestore';
 import { ItemModel } from '@/app/model/order_model';
 import { UserModel } from '@/app/model/user_model';
+import { formatDate } from '@/utils/formatTime';
 
 const OrderDetails = () => {
     const params = useParams();
@@ -145,15 +146,7 @@ const OrderDetails = () => {
     };
 
 
-    const formatDate = (timestamp: Timestamp) => {
-        return new Date(timestamp.seconds * 1000).toLocaleString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    };
+
 
     if (loading) {
         return (

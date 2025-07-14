@@ -1,6 +1,7 @@
 import { Withdrawal } from '@/app/model/withdraw_model'
 import { db } from '@/firebase/clientApp'
 import { collection, query, where, getDocs, updateDoc, doc, serverTimestamp, getDoc } from 'firebase/firestore'
+import { performTransfer, TransferRequest } from './transfer'
 
 // Get all pending withdrawals
 export async function getPendingWithdrawals(): Promise<Withdrawal[]> {
@@ -78,19 +79,36 @@ export async function getWithdrawalById(id: string): Promise<Withdrawal | null> 
 // Approve a withdrawal
 export async function approveWithdrawal(withdrawalId: string): Promise<void> {
     // Update withdrawal status
-    const withdrawalRef = doc(db, 'Withdrawals', withdrawalId)
-    await updateDoc(withdrawalRef, {
-        status: 'completed',
-        approvedAt: serverTimestamp(),
-        approvedBy: 'admin'
-    })
+    try {
+        // Fetch withdrawal details
+        const withdrawal = await getWithdrawalById(withdrawalId);
+        if (!withdrawal) {
+            throw new Error(`Withdrawal with ID ${withdrawalId} not found`);
+        }
+
+        if (withdrawal.status !== 'pending') {
+            throw new Error(`Withdrawal with ID ${withdrawalId} is not in pending status`);
+        }
+
+        performTransfer((withdrawal.amount * 100).toString(), withdrawal.recipientCode, withdrawal.id);
+
+        const withdrawalRef = doc(db, 'Withdrawals', withdrawalId)
+        await updateDoc(withdrawalRef, {
+            status: 'completed',
+            approvedAt: serverTimestamp(),
+            approvedBy: 'admin'
+        })
+    }
+    catch (err) {
+        throw new Error(`Failed to approve withdrawal`);
+    }
 }
 
 // Get user details for a withdrawal
 export async function getWithdrawalUserDetails(withdrawal: Withdrawal) {
     try {
         // Validate withdrawal.type
-        if (!['pharmacy', 'user'].includes(withdrawal.type)) {
+        if (!['pharmacy', 'doctor'].includes(withdrawal.type)) {
             throw new Error(`Invalid withdrawal type: ${withdrawal.type}`);
         }
 

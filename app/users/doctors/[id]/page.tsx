@@ -14,6 +14,7 @@ import Link from 'next/link'
 import { Timestamp } from 'firebase/firestore'
 import { toast } from 'react-toastify'
 import Image from 'next/image'
+import { formatDate } from '@/utils/formatTime'
 
 const DoctorAppointments = () => {
     const { id } = useParams()
@@ -42,16 +43,6 @@ const DoctorAppointments = () => {
         fetchData()
     }, [id])
 
-    const formatDate = (timestamp: Timestamp) => {
-        const date = new Date(timestamp.seconds * 1000)
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        })
-    }
 
     const formatTimeRange = (startTime: Timestamp, endTime: Timestamp) => {
         const start = new Date(startTime.seconds * 1000)

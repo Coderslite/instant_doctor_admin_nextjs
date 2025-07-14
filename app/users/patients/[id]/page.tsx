@@ -10,6 +10,7 @@ import { OrderModel } from '@/app/model/order_model'
 import { AppointmentModel } from '@/app/model/appointment_model'
 import Link from 'next/link'
 import { Timestamp } from 'firebase/firestore'
+import { formatDate } from '@/utils/formatTime'
 
 const PatientDetails = () => {
     const { id } = useParams()
@@ -39,18 +40,6 @@ const PatientDetails = () => {
 
         fetchData()
     }, [id])
-
-    const formatDate = (timestamp: Timestamp | undefined) => {
-        if (!timestamp) return 'Not available'
-        const date = timestamp.toDate()
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        })
-    }
 
     const formatBirthDate = (timestamp: Timestamp | undefined) => {
         if (!timestamp) return 'Not provided'
