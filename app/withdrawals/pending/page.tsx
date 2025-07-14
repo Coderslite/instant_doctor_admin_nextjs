@@ -150,12 +150,12 @@ const PendingWithdrawals = () => {
                                             >
                                                 <FiEye className="mr-1" /> View
                                             </Link>
-                                            <button
+                                            {/* <button
                                                 className='inline-flex items-center bg-green-500 text-white px-3 py-1 rounded-lg text-sm'
                                                 onClick={() => handleApprove(withdrawal.id)}
                                             >
                                                 Approve
-                                            </button>
+                                            </button> */}
                                         </div>
                                     </td>
                                 </tr>
