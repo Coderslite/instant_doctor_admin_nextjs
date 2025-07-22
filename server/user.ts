@@ -1,6 +1,6 @@
 import { UserModel } from "@/app/model/user_model";
 import { db } from "@/firebase/clientApp";
-import { collection, doc, getDoc, DocumentData } from "firebase/firestore";
+import { collection, doc, getDoc, updateDoc, DocumentData } from "firebase/firestore";
 
 const userCol = collection(db, 'Users');
 
@@ -21,10 +21,6 @@ async function getUserById(id: string): Promise<UserModel | null> {
             phoneNumber: userData.phoneNumber,
             photoUrl: userData.photoUrl,
             token: userData.token,
-            // Add any other required properties from UserModel
-            ...userData // This spreads any additional properties that might be in the document
-            ,
-
             certificate: userData.certificate,
             experience: userData.experience,
             isAvailable: userData.isAvailable,
@@ -35,6 +31,7 @@ async function getUserById(id: string): Promise<UserModel | null> {
             workAddress: userData.workAddress,
             yearHousemanship: userData.yearHousemanship,
             balance: userData.balance,
+            ...userData // Spread any additional properties
         };
 
         return user;
@@ -43,7 +40,15 @@ async function getUserById(id: string): Promise<UserModel | null> {
     return null;
 }
 
-async function updateUser(userId: string, date: {}) {
-
+async function updateUser(userId: string, data: Partial<UserModel>) {
+    try {
+        const userRef = doc(userCol, userId);
+        await updateDoc(userRef, data);
+        console.log(`User ${userId} updated successfully with data:`, data);
+    } catch (error) {
+        console.error(`Error updating user ${userId}:`, error);
+        throw error; // Rethrow the error to be handled by the caller
+    }
 }
+
 export { getUserById, updateUser };

@@ -219,7 +219,7 @@ const Home = () => {
               description="Awaiting verification"
               bgColor="bg-gradient-to-r from-orange-600 to-orange-500"
               textColor="text-white"
-              link="/users/pending-doctors"
+              link="/users/doctors"
             />
             <StatCard
               icon={<MdOutlineInventory2 className="text-black text-2xl" />}

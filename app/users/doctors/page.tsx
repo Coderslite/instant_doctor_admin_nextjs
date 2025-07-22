@@ -74,6 +74,7 @@ const Doctors = () => {
                             <th scope="col" className="px-4 py-3">Name</th>
                             <th scope="col" className="px-4 py-3">Email</th>
                             <th scope="col" className="px-4 py-3">Phone Number</th>
+                            <th scope="col" className="px-4 py-3">Status</th>
                             <th scope="col" className="px-4 py-3">Date</th>
                             <th scope="col" className="px-4 py-3">Action</th>
                         </tr>
@@ -96,6 +97,17 @@ const Doctors = () => {
                                     </td>
                                     <td className="px-4 py-4">
                                         {patient.phoneNumber}
+                                    </td>
+                                    <td className="px-4 py-4">
+                                        <span
+                                            className={`px-3 rounded-lg text-xs pb-1 text-white ${patient.accountStatus === 'pending' ? 'bg-yellow-500' :
+                                                patient.accountStatus === 'confirmed' ? 'bg-green-500' :
+                                                    patient.accountStatus === 'rejected' ? 'bg-red-500' :
+                                                        'bg-gray-500'
+                                                }`}
+                                        >
+                                            {patient.accountStatus}
+                                        </span>
                                     </td>
                                     <td className="px-4 py-4">
                                         {formatDate(patient.createdAt == null ? Timestamp.now() : patient.createdAt)}

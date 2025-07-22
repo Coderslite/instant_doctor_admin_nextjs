@@ -23,7 +23,7 @@ async function getPendingDoctors() {
         userCol,
         // orderBy('createdAt', 'desc')
         where('role', '==', 'Doctor'),
-        where('status', '==', 'pending')
+        where('accountStatus', '==', 'pending')
     );
 
     const querySnapshot = await getDocs(q);

@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { FiArrowLeft, FiAlertCircle, FiCheckCircle, FiClock, FiDollarSign, FiUser, FiPhone, FiMail, FiCreditCard, FiX } from 'react-icons/fi'
+import { FiArrowLeft, FiAlertCircle, FiCheckCircle, FiClock, FiDollarSign, FiUser, FiPhone, FiMail, FiCreditCard, FiX, FiHome } from 'react-icons/fi'
 import { Timestamp } from 'firebase/firestore'
 import { useRouter, useParams } from 'next/navigation'
 import { toast } from 'react-toastify'
@@ -73,7 +73,6 @@ const WithdrawalDetails = () => {
         try {
             setRejecting(true)
             await rejectWithdrawal(params.id as string, 'admin_user_id', rejectionReason)
-
             toast.success('Withdrawal rejected successfully')
             router.refresh()
             setWithdrawal(prev => prev ? {
@@ -83,7 +82,6 @@ const WithdrawalDetails = () => {
                 rejectedBy: 'admin_user_id',
                 rejectionReason
             } : null)
-
             setShowRejectModal(false)
             setRejectionReason('')
         } catch (error) {
@@ -134,10 +132,10 @@ const WithdrawalDetails = () => {
                 <h1 className="text-2xl font-bold">Withdrawal Details</h1>
                 <div className="ml-auto">
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${withdrawal.status === 'pending'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : withdrawal.status === 'completed'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : withdrawal.status === 'completed'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800'
                         }`}>
                         {withdrawal.status === 'pending' ? (
                             <>
@@ -194,8 +192,8 @@ const WithdrawalDetails = () => {
                             onClick={handleReject}
                             disabled={rejecting || !rejectionReason.trim()}
                             className={`px-4 py-2 rounded-md text-white ${rejecting || !rejectionReason.trim()
-                                ? 'bg-red-400'
-                                : 'bg-red-500 hover:bg-red-600'
+                                    ? 'bg-red-400'
+                                    : 'bg-red-500 hover:bg-red-600'
                                 }`}
                         >
                             {rejecting ? 'Processing...' : 'Confirm Rejection'}
@@ -267,7 +265,7 @@ const WithdrawalDetails = () => {
                                 <FiUser className="mr-2" /> {withdrawal.type === 'pharmacy' ? 'Pharmacy' : 'Doctor'} Information
                             </h3>
                             <div className="bg-gray-50 rounded-lg p-4">
-                                <div className="grid md:grid-cols-3 gap-4">
+                                <div className="grid md:grid-cols-2 gap-4">
                                     <div>
                                         <p className="text-sm text-gray-500">Name</p>
                                         <p className="font-medium">{withdrawal.user.name}</p>
@@ -279,6 +277,10 @@ const WithdrawalDetails = () => {
                                     <div>
                                         <p className="text-sm text-gray-500">Phone</p>
                                         <p className="font-medium">{withdrawal.user.phone}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-500">Address</p>
+                                        <p className="font-medium">{withdrawal.user.address}</p>
                                     </div>
                                 </div>
                             </div>

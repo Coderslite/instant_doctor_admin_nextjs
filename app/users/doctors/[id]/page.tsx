@@ -1,10 +1,10 @@
 'use client'
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { 
-  FiClock, FiCalendar, FiUser, FiPhone, FiMail, FiHome, 
-  FiDollarSign, FiCheck, FiX, FiFileText, FiBriefcase, 
-  FiAward, FiHeart, FiEdit2, FiCheckCircle, FiXCircle 
+import {
+    FiClock, FiCalendar, FiUser, FiPhone, FiMail, FiHome,
+    FiDollarSign, FiCheck, FiX, FiFileText, FiBriefcase,
+    FiAward, FiHeart, FiEdit2, FiCheckCircle, FiXCircle, FiEye
 } from 'react-icons/fi'
 import { getUserById, updateUser } from '@/server/user'
 import { getAppointmentsByDoctorId } from '@/server/appointment'
@@ -19,7 +19,7 @@ import { formatDate } from '@/utils/formatTime'
 const DoctorAppointments = () => {
     const { id } = useParams()
     const [doctor, setDoctor] = useState<UserModel | null>(null)
-    const [appointments, setAppointments] = useState<(AppointmentModel & { patientName: string })[]>([])
+    const [appointments, setAppointments] = useState<(AppointmentModel & { patientName: string, status?: string })[]>([])
     const [loading, setLoading] = useState(true)
     const [updating, setUpdating] = useState(false)
     const [showCertificate, setShowCertificate] = useState(false)
@@ -30,11 +30,12 @@ const DoctorAppointments = () => {
                 setLoading(true)
                 const doctorData = await getUserById(id as string)
                 const doctorAppointments = await getAppointmentsByDoctorId(id as string)
-
+                console.log('Appointments:', doctorAppointments) // Debug
                 setDoctor(doctorData)
                 setAppointments(doctorAppointments)
             } catch (error) {
                 console.error('Error fetching data:', error)
+                toast.error('Failed to load data')
             } finally {
                 setLoading(false)
             }
@@ -43,28 +44,34 @@ const DoctorAppointments = () => {
         fetchData()
     }, [id])
 
-
-    const formatTimeRange = (startTime: Timestamp, endTime: Timestamp) => {
+    const formatTimeRange = (startTime?: Timestamp, endTime?: Timestamp) => {
+        if (!startTime || !endTime || !startTime.seconds || !endTime.seconds) return 'N/A'
         const start = new Date(startTime.seconds * 1000)
         const end = new Date(endTime.seconds * 1000)
         return `${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
     }
 
-    const formatCurrency = (amount: number) => {
+    const formatCurrency = (amount?: number) => {
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
-            currency: 'USD'
-        }).format(amount)
+            currency: 'NGN'
+        }).format(amount ?? 0)
     }
 
-    const handleStatusUpdate = async (newStatus: 'approved' | 'rejected') => {
+    const formatDate = (timestamp?: Timestamp) => {
+        if (!timestamp || !timestamp.seconds) return 'N/A'
+        const date = new Date(timestamp.seconds * 1000)
+        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+    }
+
+    const handleStatusUpdate = async (newStatus: 'confirmed' | 'rejected') => {
         if (!doctor) return
-        
+
         try {
             setUpdating(true)
             await updateUser(doctor.id, { accountStatus: newStatus })
             setDoctor({ ...doctor, accountStatus: newStatus })
-            toast.success(`Doctor ${newStatus === 'approved' ? 'approved' : 'rejected'} successfully`)
+            toast.success(`Doctor ${newStatus === 'confirmed' ? 'confirmed' : 'rejected'} successfully`)
         } catch (error) {
             console.error('Error updating status:', error)
             toast.error('Failed to update status')
@@ -75,7 +82,7 @@ const DoctorAppointments = () => {
 
     const toggleAvailability = async () => {
         if (!doctor) return
-        
+
         try {
             setUpdating(true)
             const newAvailability = !doctor.isAvailable
@@ -109,8 +116,8 @@ const DoctorAppointments = () => {
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="flex items-center mb-6">
-                <Link href="/doctors" className="mr-4 text-blue-500 hover:text-blue-700">
-                    &larr; Back to Doctors
+                <Link href="/users/doctors" className="mr-4 text-blue-500 hover:text-blue-700">
+                    ← Back to Doctors
                 </Link>
                 <h1 className="text-3xl font-bold text-gray-800">Doctor Details</h1>
             </div>
@@ -121,8 +128,8 @@ const DoctorAppointments = () => {
                     <div className="flex flex-col items-center mb-4">
                         {doctor.photoUrl ? (
                             <div className="w-24 h-24 rounded-full overflow-hidden mb-3">
-                                <Image 
-                                    src={doctor.photoUrl} 
+                                <Image
+                                    src={doctor.photoUrl}
                                     alt={`Dr. ${doctor.firstname} ${doctor.lastname}`}
                                     width={96}
                                     height={96}
@@ -138,17 +145,18 @@ const DoctorAppointments = () => {
                             Dr. {doctor.firstname} {doctor.lastname}
                         </h2>
                         <p className="text-gray-500">Doctor ID: {doctor.id}</p>
-                        
+
                         {/* Account Status Badge */}
                         <div className="mt-2">
-                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                doctor.accountStatus === 'approved' 
-                                    ? 'bg-green-100 text-green-800' 
-                                    : doctor.accountStatus === 'pending'
-                                        ? 'bg-yellow-100 text-yellow-800'
-                                        : 'bg-red-100 text-red-800'
-                            }`}>
-                                {doctor.accountStatus || 'pending'}
+                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${doctor.accountStatus === 'confirmed'
+                                ? 'bg-green-100 text-green-800'
+                                : doctor.accountStatus === 'pending'
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : doctor.accountStatus === 'rejected'
+                                        ? 'bg-red-100 text-red-800'
+                                        : 'bg-gray-100 text-gray-800'
+                                }`}>
+                                {doctor.accountStatus ? doctor.accountStatus.charAt(0).toUpperCase() + doctor.accountStatus.slice(1) : 'Pending'}
                             </span>
                         </div>
                     </div>
@@ -180,14 +188,12 @@ const DoctorAppointments = () => {
                             <button
                                 onClick={toggleAvailability}
                                 disabled={updating}
-                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                                    doctor.isAvailable ? 'bg-green-500' : 'bg-gray-200'
-                                }`}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${doctor.isAvailable ? 'bg-green-500' : 'bg-gray-200'
+                                    }`}
                             >
                                 <span
-                                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                        doctor.isAvailable ? 'translate-x-6' : 'translate-x-1'
-                                    }`}
+                                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${doctor.isAvailable ? 'translate-x-6' : 'translate-x-1'
+                                        }`}
                                 />
                             </button>
                         </div>
@@ -199,11 +205,11 @@ const DoctorAppointments = () => {
                             <h4 className="text-sm font-medium text-gray-700 mb-2">Account Approval</h4>
                             <div className="flex space-x-2">
                                 <button
-                                    onClick={() => handleStatusUpdate('approved')}
+                                    onClick={() => handleStatusUpdate('confirmed')}
                                     disabled={updating}
                                     className="flex items-center bg-green-500 text-white px-3 py-1 rounded-lg text-sm disabled:opacity-50"
                                 >
-                                    <FiCheckCircle className="mr-1" /> Approve
+                                    <FiCheckCircle className="mr-1" /> Confirm
                                 </button>
                                 <button
                                     onClick={() => handleStatusUpdate('rejected')}
@@ -223,7 +229,7 @@ const DoctorAppointments = () => {
                         <FiFileText className="mr-2 text-blue-500" />
                         Professional Details
                     </h3>
-                    
+
                     <div className="space-y-4">
                         {/* Certificate */}
                         <div>
@@ -234,13 +240,13 @@ const DoctorAppointments = () => {
                                         onClick={() => setShowCertificate(!showCertificate)}
                                         className="text-blue-500 hover:text-blue-700 text-sm flex items-center"
                                     >
-                                        <FiFileText className="mr-1" /> 
+                                        <FiFileText className="mr-1" />
                                         {showCertificate ? 'Hide Certificate' : 'View Certificate'}
                                     </button>
                                     {showCertificate && (
                                         <div className="mt-2">
-                                            <Image 
-                                                src={doctor.certificate} 
+                                            <Image
+                                                src={doctor.certificate}
                                                 alt="Medical Certificate"
                                                 width={400}
                                                 height={300}
@@ -292,7 +298,7 @@ const DoctorAppointments = () => {
                         <FiHeart className="mr-2 text-blue-500" />
                         Medical Information
                     </h3>
-                    
+
                     <div className="grid grid-cols-2 gap-4">
                         {/* Blood Group */}
                         <div>
@@ -367,42 +373,70 @@ const DoctorAppointments = () => {
                         <p>No appointments found</p>
                     </div>
                 ) : (
-                    <div className="space-y-4">
-                        {appointments.map((appointment) => (
-                            <div key={appointment.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
-                                <div className="flex justify-between items-start mb-2">
-                                    <div>
-                                        <p className="font-medium text-gray-800">
-                                            Appointment with {appointment.patientName}
-                                        </p>
-                                        <p className="text-sm text-gray-500">
+                    <div className="overflow-x-auto">
+                        <table className="w-full table-auto border-collapse">
+                            <thead>
+                                <tr className="bg-gray-50">
+                                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Patient</th>
+                                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Date</th>
+                                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Time</th>
+                                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Payment</th>
+                                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Status</th>
+                                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Price</th>
+                                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Complaint</th>
+                                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {appointments.map((appointment) => (
+                                    <tr key={appointment.id} className="border-b border-gray-200 hover:bg-gray-50">
+                                        <td className="px-4 py-2 text-sm text-gray-600">
+                                            {appointment.patientName || 'Unknown'}
+                                        </td>
+                                        <td className="px-4 py-2 text-sm text-gray-600">
                                             {formatDate(appointment.startTime)}
-                                        </p>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                            appointment.isPaid
+                                        </td>
+                                        <td className="px-4 py-2 text-sm text-gray-600">
+                                            {formatTimeRange(appointment.startTime, appointment.endTime)}
+                                        </td>
+                                        <td className="px-4 py-2">
+                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${appointment.isPaid
                                                 ? 'bg-green-100 text-green-800'
                                                 : 'bg-yellow-100 text-yellow-800'
-                                        }`}>
-                                            {appointment.isPaid ? 'Paid' : 'Pending Payment'}
-                                        </span>
-                                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                            {formatTimeRange(appointment.startTime, appointment.endTime)}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <div className="flex items-center">
-                                        <FiDollarSign className="text-gray-400 mr-1" />
-                                        <span className="font-medium">{formatCurrency(appointment.price)}</span>
-                                    </div>
-                                    <div className="text-sm text-gray-500 max-w-[50%] truncate">
-                                        {appointment.complain || 'No complaint noted'}
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
+                                                }`}>
+                                                {appointment.isPaid ? 'Paid' : 'Pending'}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-2">
+                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${appointment.status === 'upcoming'
+                                                ? 'bg-blue-100 text-blue-800'
+                                                : appointment.status === 'completed'
+                                                    ? 'bg-green-100 text-green-800'
+                                                    : appointment.status === 'cancelled'
+                                                        ? 'bg-red-100 text-red-800'
+                                                        : 'bg-gray-100 text-gray-800'
+                                                }`}>
+                                                {appointment.status ? appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1) : 'Unknown'}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-2 text-sm text-gray-600">
+                                            {appointment.price == 0 ? 'Trial' : formatCurrency(appointment.price)}
+                                        </td>
+                                        <td className="px-4 py-2 text-sm text-gray-600 max-w-[200px] truncate">
+                                            {appointment.complain || 'No complaint noted'}
+                                        </td>
+                                        <td className="px-4 py-2">
+                                            <Link
+                                                href={`/appointments/details/${appointment.id}`}
+                                                className="flex items-center text-blue-500 hover:text-blue-700 text-sm"
+                                            >
+                                                <FiEye className="mr-1" /> View
+                                            </Link>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 )}
             </div>
