@@ -12,6 +12,7 @@
   "dependencies": {
     "@react-icons/all-files": "^4.1.0",
     "cookies-next": "^5.1.0",
+    "date-fns": "^4.1.0",
     "firebase": "^11.6.1",
     "flowbite": "^3.1.2",
     "flowbite-react": "^0.11.7",

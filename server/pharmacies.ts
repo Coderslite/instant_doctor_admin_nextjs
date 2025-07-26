@@ -129,7 +129,7 @@ export const createPharmacy = async (pharmacyData: NewPharmacyData): Promise<str
 
 export async function getPharmacyStocks(pharmacyId: string): Promise<DrugModel[]> {
     const q = query(
-        collection(db, 'Drugs'),
+        collection(db, 'Products'),
         where('pharmacyId', '==', pharmacyId)
     )
 

@@ -261,12 +261,24 @@ const AdminSidebar = () => {
                                 {(isAppointmentsOpen && (isSidebarOpen || isHovered)) && (
                                     <ul className="py-1 pl-4 ml-5 space-y-1 border-l border-gray-200 dark:border-gray-700">
                                         <li>
+                                            <NavLink href="/appointments/all">
+                                                <div className={`
+                                                    flex items-center p-2 rounded-lg 
+                                                    ${pathname === '/appointments/all' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : ''}
+                                                    hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+                                                    `}>
+                                                    <RiCalendarScheduleFill className="text-lg min-w-[20px]" />
+                                                    <span className="ml-2">All</span>
+                                                </div>
+                                            </NavLink>
+                                        </li>
+                                        <li>
                                             <NavLink href="/appointments/pending">
                                                 <div className={`
-                          flex items-center p-2 rounded-lg 
-                          ${pathname === '/appointments/pending' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : ''}
-                          hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
-                        `}>
+                                                    flex items-center p-2 rounded-lg 
+                                                    ${pathname === '/appointments/pending' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : ''}
+                                                    hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+                                                    `}>
                                                     <RiCalendarScheduleFill className="text-lg min-w-[20px]" />
                                                     <span className="ml-2">Pending</span>
                                                 </div>

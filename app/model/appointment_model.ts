@@ -9,6 +9,7 @@ export interface AppointmentModel {
     startTime: Timestamp;
     endTime: Timestamp;
     isPaid: boolean;
+    isTrial:boolean;
     createdAt: Timestamp;
     status: string;
 }
