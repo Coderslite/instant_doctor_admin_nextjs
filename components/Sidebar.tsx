@@ -33,7 +33,7 @@ import {
     BsBoxSeam,
     BsClockHistory
 } from 'react-icons/bs';
-import { FaRegUser, FaUserNurse } from 'react-icons/fa';
+import { FaQuestionCircle, FaRegUser, FaUserNurse } from 'react-icons/fa';
 import { GrSchedule } from 'react-icons/gr';
 import { RiCalendarScheduleFill } from 'react-icons/ri';
 import toast from 'react-hot-toast';
@@ -310,6 +310,20 @@ const AdminSidebar = () => {
                                         </li>
                                     </ul>
                                 )}
+                            </li>
+
+                            {/* Pharmacies */}
+                            <li>
+                                <NavLink href="/anonymous">
+                                    <div className={`
+                    flex items-center p-3 rounded-lg 
+                    ${pathname === '/anonymous' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : ''}
+                    hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+                  `}>
+                                        <FaQuestionCircle className="text-xl min-w-[24px]" />
+                                        {(isSidebarOpen || isHovered) && <span className="ml-3">Anonymous</span>}
+                                    </div>
+                                </NavLink>
                             </li>
 
                             {/* Stocks Section */}
