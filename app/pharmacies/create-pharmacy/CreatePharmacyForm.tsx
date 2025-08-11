@@ -58,7 +58,7 @@ const CreatePharmacyForm = () => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: value
+            [name]: name === 'deliveryFee' ? (value ? Number(value) : '') : value
         }));
     };
 
