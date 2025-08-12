@@ -31,10 +31,12 @@ import {
 } from 'react-icons/md';
 import {
     BsBoxSeam,
-    BsClockHistory
+    BsClockHistory,
+    BsListOl,
+    BsListTask
 } from 'react-icons/bs';
-import { FaQuestionCircle, FaRegUser, FaUserNurse } from 'react-icons/fa';
-import { GrSchedule } from 'react-icons/gr';
+import { FaList, FaQuestionCircle, FaRegUser, FaUserNurse } from 'react-icons/fa';
+import { GrNotification, GrSchedule } from 'react-icons/gr';
 import { RiCalendarScheduleFill } from 'react-icons/ri';
 import toast from 'react-hot-toast';
 import { useRouter, usePathname } from 'next/navigation';
@@ -495,6 +497,34 @@ const AdminSidebar = () => {
                                         </li>
                                     </ul>
                                 )}
+                            </li>
+
+                            {/* waitlist */}
+                            <li>
+                                <NavLink href="/waitlist">
+                                    <div className={`
+                    flex items-center p-3 rounded-lg 
+                    ${pathname === '/waitlist' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : ''}
+                    hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+                  `}>
+                                        <BsListOl className="text-xl min-w-[24px]" />
+                                        {(isSidebarOpen || isHovered) && <span className="ml-3">Waitlist</span>}
+                                    </div>
+                                </NavLink>
+                            </li>
+
+                            {/* notification */}
+                            <li>
+                                <NavLink href="/notification">
+                                    <div className={`
+                    flex items-center p-3 rounded-lg 
+                    ${pathname === '/notification' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : ''}
+                    hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+                  `}>
+                                        <GrNotification className="text-xl min-w-[24px]" />
+                                        {(isSidebarOpen || isHovered) && <span className="ml-3">Notification</span>}
+                                    </div>
+                                </NavLink>
                             </li>
                         </ul>
                     </nav>

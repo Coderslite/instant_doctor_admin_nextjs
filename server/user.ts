@@ -1,6 +1,6 @@
 import { UserModel } from "@/app/model/user_model";
 import { db } from "@/firebase/clientApp";
-import { collection, doc, getDoc, updateDoc, DocumentData } from "firebase/firestore";
+import { collection, doc, getDoc, updateDoc, DocumentData, query, getDocs } from "firebase/firestore";
 
 const userCol = collection(db, 'Users');
 
@@ -51,4 +51,18 @@ async function updateUser(userId: string, data: Partial<UserModel>) {
     }
 }
 
-export { getUserById, updateUser };
+
+async function getAllUsers() {
+    const q = query(
+        userCol,
+    );
+
+    const querySnapshot = await getDocs(q);
+    console.log(querySnapshot.docs.length);
+    return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    })) as UserModel[];
+}
+
+export { getUserById, getAllUsers, updateUser };
