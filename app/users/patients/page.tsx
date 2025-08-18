@@ -99,7 +99,7 @@ const Patients = () => {
                                         {patient.phoneNumber}
                                     </td>
                                     <td className="px-4 py-4">
-                                        {formatDate(patient.updatedAt == null ? Timestamp.now() : patient.updatedAt)}
+                                        {formatDate(patient.lastSeen == null ? Timestamp.now() : patient.lastSeen)}
                                     </td>
                                     <td>
                                         <Link href={`/users/patients/${patient.id}`} className='bg-primary py-2 px-5 rounded-2xl text-white'>View</Link>
