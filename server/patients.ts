@@ -6,8 +6,8 @@ const userCol = collection(db, "Users");
 async function getPatients() {
     const q = query(
         userCol,
-        // orderBy('createdAt', 'desc')
-        where('role', '==', 'User')
+        where('role', '==', 'User'),
+        orderBy('lastSeen', 'desc')
     );
 
     const querySnapshot = await getDocs(q);
