@@ -20,6 +20,7 @@ import {
   getTotalPharmacyEarnings
 } from "@/server/admin";
 import { fetchWithCache } from "@/server/data-fetching";
+import { getPendingAnonymousMessages } from "@/server/anonymous";
 
 interface AppointmentWithNames extends AppointmentModel {
   doctorName: string;
@@ -29,7 +30,7 @@ interface AppointmentWithNames extends AppointmentModel {
 interface DashboardStats {
   patients: number;
   doctors: number;
-  pendingDoctors: number;
+  anonymous: number;
   pharmacies: number;
   ongoingAppointments: number;
   pendingAppointments: number;
@@ -87,13 +88,13 @@ const Home = () => {
     const fetchSecondaryData = async () => {
       try {
         const [
-          pendingDoctors,
+          anonymous,
           pharmacies,
           ongoingAppointments,
           pendingAppointments,
           pendingOrders,
         ] = await Promise.all([
-          fetchWithCache('pendingDoctors', () => getPendingDoctors().then(res => res.length)),
+          fetchWithCache('anonymous', () => getPendingAnonymousMessages().then(res => res.length)),
           fetchWithCache('pharmacies', () => getPharmacies().then(res => res.length)),
           fetchWithCache('ongoingAppointments', () => getOngoingAppointments().then(res => res.length)),
           fetchWithCache('pendingAppointments', () => getPendingAppointments().then(res => res.length)),
@@ -102,7 +103,7 @@ const Home = () => {
 
         setStats(prev => ({
           ...prev,
-          pendingDoctors,
+          anonymous,
           pharmacies,
           ongoingAppointments,
           pendingAppointments,
@@ -214,8 +215,8 @@ const Home = () => {
             />
             <StatCard
               icon={<FiUser className="text-black text-2xl" />}
-              title="Pending Doctors"
-              value={stats.pendingDoctors?.toLocaleString() ?? '0'}
+              title="Anonymous"
+              value={stats.anonymous?.toLocaleString() ?? '0'}
               description="Awaiting verification"
               bgColor="bg-gradient-to-r from-orange-600 to-orange-500"
               textColor="text-white"

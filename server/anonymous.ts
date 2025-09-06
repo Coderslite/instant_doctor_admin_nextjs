@@ -16,6 +16,23 @@ interface AnonymousModel {
     updatedAt: Date;
 }
 
+async function getPendingAnonymousMessages(): Promise<AnonymousModel[]> {
+    const q = query(
+        anonymousCol,
+        where('status', '==', 'pending'),
+        orderBy('createdAt', 'desc')
+    );
+
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt.toDate(),
+        updatedAt: doc.data().updatedAt?.toDate()
+    })) as AnonymousModel[];
+}
+
+
 async function getAllAnonymousMessages(): Promise<AnonymousModel[]> {
     const q = query(
         anonymousCol,
@@ -30,6 +47,7 @@ async function getAllAnonymousMessages(): Promise<AnonymousModel[]> {
         updatedAt: doc.data().updatedAt?.toDate()
     })) as AnonymousModel[];
 }
+
 
 async function getAnonymousMessageById(id: string): Promise<AnonymousModel | null> {
     const docRef = doc(anonymousCol, id);
@@ -67,7 +85,8 @@ async function updateAnonymousMessage(id: string, answer: string): Promise<void>
 export {
     getAllAnonymousMessages,
     getAnonymousMessageById,
-    updateAnonymousMessage
+    updateAnonymousMessage,
+    getPendingAnonymousMessages,
 };
 
 export type { AnonymousModel };

@@ -8,18 +8,19 @@ import { FiClock, FiEye, FiX } from 'react-icons/fi'
 import { UserModel } from '@/app/model/user_model'
 import { formatDate } from '@/utils/formatTime'
 
-
 const Patients = () => {
-    const [patients, setpatients] = useState<UserModel[]>([])
+    const [patients, setPatients] = useState<UserModel[]>([])
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState('')
+    const [currentPage, setCurrentPage] = useState(1)
+    const patientsPerPage = 10 // Number of patients per page
 
     useEffect(() => {
-        const fetchpatients = async () => {
+        const fetchPatients = async () => {
             try {
                 setLoading(true)
                 const patients = await getPatients()
-                setpatients(patients)
+                setPatients(patients)
             } catch (error) {
                 console.error('Error fetching patients:', error)
             } finally {
@@ -27,19 +28,35 @@ const Patients = () => {
             }
         }
 
-        fetchpatients()
+        fetchPatients()
     }, [])
 
-
-
-    const filteredpatients = patients.filter(patient => {
+    const filteredPatients = patients.filter(patient => {
         const searchLower = searchTerm.toLowerCase()
         return (
             patient.id.toLowerCase().includes(searchLower) ||
-            (patient.firstname.toString() + ' ' + patient.lastname.toString()).includes(searchLower) ||
+            (patient.firstname.toString() + ' ' + patient.lastname.toString()).toLowerCase().includes(searchLower) ||
             formatDate(patient.createdAt!).toLowerCase().includes(searchLower)
         )
     })
+
+    // Calculate pagination
+    const totalPatients = filteredPatients.length
+    const totalPages = Math.ceil(totalPatients / patientsPerPage)
+    const indexOfLastPatient = currentPage * patientsPerPage
+    const indexOfFirstPatient = indexOfLastPatient - patientsPerPage
+    const currentPatients = filteredPatients.slice(indexOfFirstPatient, indexOfLastPatient)
+
+    // Handle page change
+    const handlePageChange = (pageNumber: number) => {
+        setCurrentPage(pageNumber)
+    }
+
+    // Generate page numbers
+    const pageNumbers = []
+    for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i)
+    }
 
     if (loading) {
         return (
@@ -68,10 +85,16 @@ const Patients = () => {
                 </div>
             </div>
 
+            {/* List Count */}
+            <div className="mb-4 text-gray-600">
+                Showing {indexOfFirstPatient + 1} to {Math.min(indexOfLastPatient, totalPatients)} of {totalPatients} patients
+            </div>
+
             <div className="w-full overflow-x-auto">
                 <table className="min-w-full text-sm text-left text-gray-500">
                     <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                         <tr>
+                            <th scope="col" className="px-4 py-3">ID</th>
                             <th scope="col" className="px-4 py-3">Name</th>
                             <th scope="col" className="px-4 py-3">Email</th>
                             <th scope="col" className="px-4 py-3">Phone Number</th>
@@ -80,16 +103,19 @@ const Patients = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredpatients.length === 0 ? (
+                        {currentPatients.length === 0 ? (
                             <tr className="bg-white border-b">
                                 <td colSpan={6} className="px-4 py-4 text-center">
                                     {searchTerm ? 'No matching patients found' : 'No patients yet'}
                                 </td>
                             </tr>
                         ) : (
-                            filteredpatients.map((patient) => (
+                            currentPatients.map((patient, index) => (
                                 <tr key={patient.id} className="bg-white border-b hover:bg-gray-50">
                                     <td className="px-4 py-4 font-medium text-gray-900">
+                                        {(currentPage - 1) * patientsPerPage + index + 1}
+                                    </td>
+                                    <td className="px-4 py-4">
                                         {patient.firstname + " " + patient.lastname}
                                     </td>
                                     <td className="px-4 py-4">
@@ -110,6 +136,42 @@ const Patients = () => {
                     </tbody>
                 </table>
             </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+                <div className="flex justify-center mt-6">
+                    <nav className="inline-flex rounded-md shadow">
+                        {/* Previous Button */}
+                        <button
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className={`px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-50'}`}
+                        >
+                            Previous
+                        </button>
+
+                        {/* Page Numbers */}
+                        {pageNumbers.map((number) => (
+                            <button
+                                key={number}
+                                onClick={() => handlePageChange(number)}
+                                className={`px-3 py-2 border border-gray-300 text-sm font-medium ${currentPage === number ? 'bg-blue-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+                            >
+                                {number}
+                            </button>
+                        ))}
+
+                        {/* Next Button */}
+                        <button
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            className={`px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${currentPage === totalPages ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-50'}`}
+                        >
+                            Next
+                        </button>
+                    </nav>
+                </div>
+            )}
         </div>
     )
 }
