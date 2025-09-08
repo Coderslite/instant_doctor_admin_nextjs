@@ -339,7 +339,7 @@ export async function updateAppointment(
 export async function getAvailableDoctors(): Promise<UserModel[]> {
     const q = query(
         userCol,
-        where('role', '==', 'doctor')
+        where('role', '==', 'Doctor')
     );
 
     const snapshot = await getDocs(q);

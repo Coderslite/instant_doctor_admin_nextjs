@@ -312,14 +312,14 @@ const AppointmentDetails = () => {
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">Actions</h3>
                 <div className="flex flex-wrap gap-4">
                     <button
-                        onClick={() => router.push(`/patients/${appointment.userId}`)}
+                        onClick={() => router.push(`/users/patients/${appointment.userId}`)}
                         className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-lg flex items-center"
                     >
                         <FiUser className="mr-2" /> View Patient Profile
                     </button>
                     {appointment.doctorId && (
                         <button
-                            onClick={() => router.push(`/doctors/${appointment.doctorId}`)}
+                            onClick={() => router.push(`/users/doctors/${appointment.doctorId}`)}
                             className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-lg flex items-center"
                         >
                             <FiUser className="mr-2" /> View Doctor Profile
