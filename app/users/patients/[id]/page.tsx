@@ -94,7 +94,7 @@ const PatientDetails = () => {
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="flex items-center mb-6">
-                <Link href="/patients" className="mr-4 text-blue-500 hover:text-blue-700">
+                <Link href="/users/patients" className="mr-4 text-blue-500 hover:text-blue-700">
                     &larr; Back to Patients
                 </Link>
                 <h1 className="text-3xl font-bold text-gray-800">Patient Details</h1>

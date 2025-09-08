@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { IoSearchOutline } from 'react-icons/io5'
 import { getAllAppointments, EnhancedAppointmentModel } from '@/server/appointment'
 import Link from 'next/link'
-import { FiEye, FiUser, FiCheckCircle, FiXCircle, FiLoader, FiClock, FiCalendar, FiActivity } from 'react-icons/fi'
+import { FiEye, FiUser, FiCheckCircle, FiXCircle, FiLoader, FiClock, FiCalendar } from 'react-icons/fi'
 import { format, isToday, isYesterday, isThisWeek } from 'date-fns'
 
 const AllAppointments = () => {
@@ -27,20 +27,29 @@ const AllAppointments = () => {
         fetchAppointments()
     }, [])
 
-    const getStatusIcon = (status: string) => {
-        switch (status.toLowerCase()) {
-            case 'completed':
-                return <FiCheckCircle className="mr-1 text-green-500" />
-            case 'cancelled':
-                return <FiXCircle className="mr-1 text-red-500" />
-            case 'ongoing':
-                return <FiLoader className="mr-1 animate-spin text-purple-500" />
-            case 'confirmed':
-                return <FiCheckCircle className="mr-1 text-blue-500" />
-            case 'active':
-                return <FiActivity className="mr-1 text-green-600" />
-            default: // pending
-                return <FiClock className="mr-1 text-yellow-500" />
+    const getAppointmentStatus = (startTime: Date, endTime: Date) => {
+        const now = new Date()
+        const start = new Date(startTime)
+        const end = new Date(endTime)
+
+        if (now >= start && now <= end) {
+            return {
+                status: 'ongoing',
+                class: 'bg-purple-100 text-purple-800',
+                icon: <FiLoader className="mr-1 animate-spin text-purple-500" />
+            }
+        } else if (now > end) {
+            return {
+                status: 'expired',
+                class: 'bg-red-100 text-red-800',
+                icon: <FiXCircle className="mr-1 text-red-500" />
+            }
+        } else {
+            return {
+                status: 'upcoming',
+                class: 'bg-blue-100 text-blue-800',
+                icon: <FiClock className="mr-1 text-blue-500" />
+            }
         }
     }
 
@@ -61,13 +70,14 @@ const AllAppointments = () => {
 
     const filteredAppointments = appointments.filter(appointment => {
         const searchLower = searchTerm.toLowerCase()
+        const { status } = getAppointmentStatus(appointment.startTime.toDate(), appointment.endTime.toDate())
         return (
             appointment.id.toLowerCase().includes(searchLower) ||
             appointment.doctorName.toLowerCase().includes(searchLower) ||
             appointment.patientName.toLowerCase().includes(searchLower) ||
             formatAppointmentDateTime(appointment.startTime.toDate()).toLowerCase().includes(searchLower) ||
             appointment.complain.toLowerCase().includes(searchLower) ||
-            appointment.status.toLowerCase().includes(searchLower)
+            status.toLowerCase().includes(searchLower)
         )
     })
 
@@ -118,42 +128,48 @@ const AllAppointments = () => {
                                 </td>
                             </tr>
                         ) : (
-                            filteredAppointments.map((appointment) => (
-                                <tr key={appointment.id} className="bg-white border-b hover:bg-gray-50">
-                                    <td className="px-4 py-4 font-medium text-gray-900">
-                                        <div className="flex items-center">
-                                            <FiUser className="mr-2 text-gray-400" />
-                                            {appointment.patientName}
-                                        </div>
-                                    </td>
-                                    <td className="px-4 py-4">
-                                        {appointment.doctorName || 'Unassigned'}
-                                    </td>
-                                    <td className="px-4 py-4">
-                                        <span className={`${appointment.statusInfo.class} rounded-full px-3 py-1 text-xs flex items-center w-fit`}>
-                                            {getStatusIcon(appointment.status)}
-                                            {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-                                        </span>
-                                    </td>
-                                    <td className="px-4 py-4 max-w-xs truncate">
-                                        {appointment.complain || 'No complaint noted'}
-                                    </td>
-                                    <td className="px-4 py-4">
-                                        <div className="flex items-center">
-                                            <FiCalendar className="mr-2 text-gray-400" />
-                                            {formatAppointmentDateTime(appointment.startTime.toDate())}
-                                        </div>
-                                    </td>
-                                    <td className="px-4 py-4">
-                                        <Link
-                                            href={`/appointments/details/${appointment.id}`}
-                                            className='inline-flex items-center bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-sm transition-colors'
-                                        >
-                                            <FiEye className="mr-1" /> View
-                                        </Link>
-                                    </td>
-                                </tr>
-                            ))
+                            filteredAppointments.map((appointment) => {
+                                const { status, class: statusClass, icon } = getAppointmentStatus(
+                                    appointment.startTime.toDate(),
+                                    appointment.endTime.toDate()
+                                )
+                                return (
+                                    <tr key={appointment.id} className="bg-white border-b hover:bg-gray-50">
+                                        <td className="px-4 py-4 font-medium text-gray-900">
+                                            <div className="flex items-center">
+                                                <FiUser className="mr-2 text-gray-400" />
+                                                {appointment.patientName}
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-4">
+                                            {appointment.doctorName || 'Unassigned'}
+                                        </td>
+                                        <td className="px-4 py-4">
+                                            <span className={`${statusClass} rounded-full px-3 py-1 text-xs flex items-center w-fit`}>
+                                                {icon}
+                                                {status.charAt(0).toUpperCase() + status.slice(1)}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-4 max-w-xs truncate">
+                                            {appointment.complain || 'No complaint noted'}
+                                        </td>
+                                        <td className="px-4 py-4">
+                                            <div className="flex items-center">
+                                                <FiCalendar className="mr-2 text-gray-400" />
+                                                {formatAppointmentDateTime(appointment.startTime.toDate())}
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-4">
+                                            <Link
+                                                href={`/appointments/details/${appointment.id}`}
+                                                className='inline-flex items-center bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-sm transition-colors'
+                                            >
+                                                <FiEye className="mr-1" /> View
+                                            </Link>
+                                        </td>
+                                    </tr>
+                                )
+                            })
                         )}
                     </tbody>
                 </table>
