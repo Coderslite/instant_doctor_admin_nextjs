@@ -262,7 +262,7 @@ export async function getAllAppointments(): Promise<EnhancedAppointmentModel[]> 
     const q = query(
         appointmentCol,
         where('isPaid', '==', true),
-        orderBy('startTime', 'asc')
+        orderBy('startTime', 'desc')
     );
 
     const snapshot = await getDocs(q);
