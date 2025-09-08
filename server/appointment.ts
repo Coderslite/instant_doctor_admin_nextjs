@@ -125,7 +125,7 @@ function enhanceAppointmentData(data: any, doctorName: string, patientName: stri
     const now = Timestamp.now();
     const startTime = data.startTime || Timestamp.now();
     const endTime = data.endTime || Timestamp.now();
-    
+
     const isPast = endTime.toMillis() < now.toMillis();
     const isUpcoming = startTime.toMillis() > now.toMillis();
     const isOngoing = startTime.toMillis() <= now.toMillis() && endTime.toMillis() >= now.toMillis();
@@ -144,13 +144,13 @@ function enhanceAppointmentData(data: any, doctorName: string, patientName: stri
         isTrial: data.isTrial || false,
         createdAt: data.createdAt || Timestamp.now(),
         status: data.status || 'pending',
-        
+
         // Formatted fields
         formattedDate: formatDate(startTime),
         formattedTime: formatTime(startTime),
         formattedTimeRange: formatTimeRange(startTime, endTime),
         statusInfo: getStatusInfo(data.status || 'pending'),
-        
+
         // Status flags
         isPast,
         isUpcoming,
@@ -240,7 +240,7 @@ export async function getPendingAppointments(): Promise<EnhancedAppointmentModel
             or(
                 where('isPaid', '==', true),
                 where('isTrial', '==', true)
-            )
+            ),
         ),
         orderBy('startTime', 'asc')
     );
@@ -281,9 +281,15 @@ export async function getAllAppointments(): Promise<EnhancedAppointmentModel[]> 
 export async function getOngoingAppointments(): Promise<EnhancedAppointmentModel[]> {
     const q = query(
         appointmentCol,
-        where('startTime', '<=', Timestamp.now()),
-        where('endTime', '>', Timestamp.now()),
-        orderBy('startTime', 'asc')
+        and(
+            where('status', '==', 'active'),
+            where('startTime', '<=', Timestamp.now()),
+            where('endTime', '>', Timestamp.now()),
+            or(
+                where('isPaid', '==', true),
+                where('isTrial', '==', true)
+            )
+        )
     );
 
     const snapshot = await getDocs(q);
