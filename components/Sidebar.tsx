@@ -27,7 +27,8 @@ import {
     MdOutlineInventory2,
     MdOutlineDisabledByDefault,
     MdLocalPharmacy,
-    MdOutlineCancelScheduleSend
+    MdOutlineCancelScheduleSend,
+    MdOutlineEmail
 } from 'react-icons/md';
 import {
     BsBoxSeam,
@@ -523,6 +524,20 @@ const AdminSidebar = () => {
                   `}>
                                         <GrNotification className="text-xl min-w-[24px]" />
                                         {(isSidebarOpen || isHovered) && <span className="ml-3">Notification</span>}
+                                    </div>
+                                </NavLink>
+                            </li>
+
+                            {/* newsletter */}
+                            <li>
+                                <NavLink href="/newsletter">
+                                    <div className={`
+                    flex items-center p-3 rounded-lg 
+                    ${pathname === '/newsletter' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : ''}
+                    hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+                  `}>
+                                        <MdOutlineEmail className="text-xl min-w-[24px]" />
+                                        {(isSidebarOpen || isHovered) && <span className="ml-3">Newsletter</span>}
                                     </div>
                                 </NavLink>
                             </li>

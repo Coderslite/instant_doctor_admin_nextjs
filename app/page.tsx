@@ -114,6 +114,8 @@ const Home = () => {
         console.error("Error fetching secondary data:", error);
       } finally {
         setLoading(prev => ({ ...prev, secondary: false }));
+
+
       }
     };
 

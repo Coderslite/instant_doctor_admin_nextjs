@@ -19,9 +19,9 @@ export interface UserModel {
     token?: string;
     address?: string;
     createdAt?: Timestamp;
-
+    role?: string;
     // for doctors
-    isAvailable?:boolean;
+    isAvailable?: boolean;
     accountStatus?: string;
     amount?: number;
     bio?: string;
