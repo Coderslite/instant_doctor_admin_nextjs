@@ -60,10 +60,10 @@ const PatientDetails = () => {
     }
 
     const formatCurrency = (amount: number | undefined) => {
-        if (amount === undefined) return '$0.00'
-        return new Intl.NumberFormat('en-US', {
+        if (amount === undefined) return 'NGN 0.00'
+        return new Intl.NumberFormat('en-NG', {
             style: 'currency',
-            currency: 'USD'
+            currency: 'NGN'
         }).format(amount)
     }
 
