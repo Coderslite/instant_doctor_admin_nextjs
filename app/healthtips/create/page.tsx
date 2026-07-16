@@ -14,6 +14,16 @@ import { v4 as uuidv4 } from "uuid";
 import { getHealthCategory } from "@/server/healthtips";
 import type { HealthCategoryModel } from "@/app/model/healthtips_model";
 
+// 🔥 SLUG GENERATOR
+function generateSlug(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "") // remove symbols
+    .replace(/\s+/g, "-") // spaces → dashes
+    .replace(/-+/g, "-"); // collapse repeated -
+}
+
 export default function CreateHealthTipPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -25,17 +35,17 @@ export default function CreateHealthTipPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState("");
 
-  // NEW: categories & selected categoryId
   const [categories, setCategories] = useState<HealthCategoryModel[]>([]);
   const [categoryId, setCategoryId] = useState<string>("");
 
+  // Load categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const cats = await getHealthCategory();
         setCategories(cats);
         if (cats.length > 0) {
-          setCategoryId(cats[0].id); // default to first category
+          setCategoryId(cats[0].id);
         }
       } catch (err) {
         console.error("Failed fetching categories:", err);
@@ -44,7 +54,7 @@ export default function CreateHealthTipPage() {
     fetchCategories();
   }, []);
 
-  // 🔹 Upload Image to Firebase Storage
+  // 🔹 Upload Image
   const handleImageUpload = async () => {
     if (!imageFile) {
       alert("Please select an image first!");
@@ -73,7 +83,7 @@ export default function CreateHealthTipPage() {
     );
   };
 
-  // 🔹 Save Health Tip to Firestore
+  // 🔹 Save Health Tip
   const handleSave = async () => {
     if (!title.trim() || !description.trim()) {
       alert("Please fill in title and description!");
@@ -99,21 +109,27 @@ export default function CreateHealthTipPage() {
       setIsSaving(true);
       setMessage("⏳ Saving health tip...");
 
+      // 🔥 Generate SEO slug
+      const baseSlug = generateSlug(title);
+      const slug = `${baseSlug}-${Date.now()}`; // unique + SEO-friendly
+
       const docRef = doc(collection(db, "HealthTips"));
       await setDoc(docRef, {
         id: docRef.id,
         title,
+        slug, // <-- added
         description,
         image: imageUrl,
-        categoryId, // <-- persisted selected categoryId
+        categoryId,
         type: "article",
-        isSent:false,
+        isSent: false,
         views: 0,
         createdAt: serverTimestamp(),
         publishedAt: Timestamp.fromDate(new Date(publishedAt)),
       });
 
       setMessage("✅ Health tip created successfully!");
+
       // reset form
       setTitle("");
       setDescription("");
@@ -121,7 +137,6 @@ export default function CreateHealthTipPage() {
       setImageUrl("");
       setPublishedAt("");
       setUploadProgress(null);
-      // keep category selection as is (optional)
     } catch (error) {
       console.error("Error saving health tip:", error);
       setMessage("❌ Failed to save health tip.");

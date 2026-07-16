@@ -176,7 +176,7 @@ const Home = () => {
               description="All-time revenue from doctors"
               bgColor="bg-gradient-to-r from-purple-600 to-purple-500"
               textColor="text-white"
-            />
+            /> 
             <StatCard
               icon={<AiOutlineWallet className="text-black text-2xl" />}
               title="Doctor Balances"

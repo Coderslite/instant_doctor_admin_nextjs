@@ -31,4 +31,11 @@ export interface UserModel {
     specialization?: string;
     workAddress?: string;
     yearHousemanship?: string;
+    referralBalance: number,
+    referralProgramApplied: boolean,
+    referralEnabled: boolean,
+    referralProgramAppliedAt: Timestamp,
+    bankName: string,
+    accountNumber: string,
+    accountName: string
 }

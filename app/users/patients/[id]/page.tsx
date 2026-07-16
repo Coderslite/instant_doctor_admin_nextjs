@@ -1,8 +1,9 @@
 'use client'
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { FiClock, FiCalendar, FiShoppingBag, FiDollarSign, FiUser, FiPhone, FiMail, FiHome, FiAlertTriangle, FiDroplet, FiHeart, FiActivity, FiScissors, FiInfo } from 'react-icons/fi'
-import { getUserById } from '@/server/user'
+import { FiClock, FiCalendar, FiShoppingBag, FiDollarSign, FiUser, FiPhone, FiMail, FiHome, FiAlertTriangle, FiDroplet, FiHeart, FiActivity, FiScissors, FiInfo, FiCreditCard, FiRepeat, FiToggleLeft, FiToggleRight, FiGift} from 'react-icons/fi'
+import { BiSolidBank } from "react-icons/bi";
+import { getUserById, updateUserReferralStatus } from '@/server/user'
 import { getOrderById, getOrdersByUserId } from '@/server/order'
 import { getAppointmentsByUserId } from '@/server/appointment'
 import { UserModel } from '@/app/model/user_model'
@@ -18,6 +19,7 @@ const PatientDetails = () => {
     const [orders, setOrders] = useState<OrderModel[]>([])
     const [appointments, setAppointments] = useState<(AppointmentModel & { doctorName: string })[]>([])
     const [loading, setLoading] = useState(true)
+    const [updating, setUpdating] = useState(false)
     const [activeTab, setActiveTab] = useState<'orders' | 'appointments'>('orders')
 
     useEffect(() => {
@@ -67,12 +69,56 @@ const PatientDetails = () => {
         }).format(amount)
     }
 
+    // Fixed: Use a stable date calculation to avoid hydration errors
     const getAge = (dobTimestamp: Timestamp | undefined) => {
         if (!dobTimestamp) return 'Unknown'
         const dob = dobTimestamp.toDate()
-        const diff = Date.now() - dob.getTime()
-        const ageDate = new Date(diff)
-        return Math.abs(ageDate.getUTCFullYear() - 1970)
+        const today = new Date()
+        let age = today.getFullYear() - dob.getFullYear()
+        const monthDiff = today.getMonth() - dob.getMonth()
+        
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+            age--
+        }
+        
+        return age
+    }
+
+    const handleToggleReferral = async () => {
+        if (!user) return
+
+        try {
+            setUpdating(true)
+            // Toggle the referral enabled status
+            const newStatus = !user.referralEnabled
+            await updateUserReferralStatus(user.id, newStatus)
+            
+            // Update local state
+            setUser({
+                ...user,
+                referralEnabled: newStatus
+            })
+            
+            // Show success message
+            alert(`Referral program ${newStatus ? 'enabled' : 'disabled'} successfully!`)
+        } catch (error) {
+            console.error('Error updating referral status:', error)
+            alert('Failed to update referral status. Please try again.')
+        } finally {
+            setUpdating(false)
+        }
+    }
+
+    const formatReferralAppliedDate = (timestamp: Timestamp | undefined) => {
+        if (!timestamp) return 'Not applied'
+        const date = timestamp.toDate()
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        })
     }
 
     if (loading) {
@@ -129,7 +175,9 @@ const PatientDetails = () => {
                         <div className="flex items-center">
                             <FiCalendar className="text-gray-400 mr-3" />
                             <span className="text-gray-600">
-                                {formatBirthDate(user.dob)} ({user.dob ? `${getAge(user.dob)} years` : 'Age unknown'})
+                                {formatBirthDate(user.dob)} {user.dob && (
+                                    <>({getAge(user.dob)} years)</>
+                                )}
                             </span>
                         </div>
                         <div className="flex items-center">
@@ -223,112 +271,223 @@ const PatientDetails = () => {
                     </div>
                 </div>
 
-                {/* Activity Summary */}
+                {/* Referral & Banking Information */}
                 <div className="bg-white rounded-lg shadow-md p-6 col-span-1">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Activity Summary</h3>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Referral & Banking</h3>
 
-                    <div className="flex border-b border-gray-200 mb-6">
-                        <button
-                            className={`py-2 px-4 font-medium ${activeTab === 'orders' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
-                            onClick={() => setActiveTab('orders')}
-                        >
-                            Orders ({orders.length})
-                        </button>
-                        <button
-                            className={`py-2 px-4 font-medium ${activeTab === 'appointments' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
-                            onClick={() => setActiveTab('appointments')}
-                        >
-                            Appointments ({appointments.length})
-                        </button>
-                    </div>
-
-                    {activeTab === 'orders' ? (
-                        <div>
-                            {orders.length === 0 ? (
-                                <div className="text-center py-8 text-gray-500">
-                                    <FiShoppingBag className="mx-auto text-3xl mb-2" />
-                                    <p>No orders found</p>
+                    <div className="space-y-4">
+                        {/* Referral Status Card */}
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                            <div className="flex justify-between items-center mb-2">
+                                <h4 className="font-medium text-gray-700 flex items-center">
+                                    <FiGift className="mr-2" /> Referral Program
+                                </h4>
+                                <button
+                                    onClick={handleToggleReferral}
+                                    disabled={updating}
+                                    className={`flex items-center gap-2 px-3 py-1 rounded-md text-sm font-medium ${user.referralEnabled
+                                        ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                                        : 'bg-green-100 text-green-700 hover:bg-green-200'
+                                        } ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                >
+                                    {updating ? (
+                                        <div className="animate-spin rounded-full h-3 w-3 border-t-2 border-b-2 border-current"></div>
+                                    ) : user.referralEnabled ? (
+                                        <FiToggleRight className="text-lg" />
+                                    ) : (
+                                        <FiToggleLeft className="text-lg" />
+                                    )}
+                                    {user.referralEnabled ? 'Disable' : 'Enable'}
+                                </button>
+                            </div>
+                            
+                            <div className="space-y-2">
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-gray-500">Status:</span>
+                                    <span className={`font-medium ${user.referralEnabled ? 'text-green-600' : 'text-red-600'}`}>
+                                        {user.referralEnabled ? 'Active' : 'Inactive'}
+                                    </span>
                                 </div>
-                            ) : (
-                                <div className="space-y-4">
-                                    {orders.map((order) => (
-                                        <div key={order.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <div>
-                                                    <p className="font-medium text-gray-800">Order #{order.id.substring(0, 8)}</p>
-                                                    <p className="text-sm text-gray-500">{formatDate(order.createdAt)}</p>
-                                                </div>
-                                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${order.status === 'completed'
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-gray-500">Program Applied:</span>
+                                    <span className={`font-medium ${user.referralProgramApplied ? 'text-green-600' : 'text-gray-600'}`}>
+                                        {user.referralProgramApplied ? 'Yes' : 'No'}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-gray-500">Applied Date:</span>
+                                    <span className="text-gray-600 text-sm">
+                                        {/* {formatReferralAppliedDate(user.referralProgramAppliedAt)} */}
+                                        {formatDate(user.referralProgramAppliedAt)}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-gray-500">Referral Balance:</span>
+                                    <span className="font-medium text-blue-600">
+                                        {formatCurrency(user.referralBalance || 0)}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Banking Information Card */}
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                            <h4 className="font-medium text-gray-700 mb-3 flex items-center">
+                                <BiSolidBank className="mr-2" /> Banking Information
+                            </h4>
+                            
+                            <div className="space-y-3">
+                                <div>
+                                    <p className="text-sm text-gray-500">Bank Name</p>
+                                    <p className="font-medium">{user.bankName || 'Not provided'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500">Account Number</p>
+                                    <p className="font-medium">{user.accountNumber || 'Not provided'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500">Account Name</p>
+                                    <p className="font-medium">{user.accountName || 'Not provided'}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Referral Program Indicator */}
+                        {user.referralProgramApplied && (
+                            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+                                <div className="flex items-center">
+                                    <FiRepeat className="text-blue-500 mr-2" />
+                                    <div>
+                                        <h4 className="font-medium text-blue-700">On Referral Program</h4>
+                                        <p className="text-sm text-blue-600">
+                                            This patient has applied to the referral program. 
+                                            {user.referralEnabled ? ' Referrals are currently active.' : ' Referrals are currently disabled.'}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Balance Information */}
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-blue-50 p-3 rounded-lg text-center">
+                                    <p className="text-sm text-gray-500">Account Balance</p>
+                                    <p className="text-xl font-bold text-blue-600">{formatCurrency(user.balance || 0)}</p>
+                                </div>
+                                <div className="bg-purple-50 p-3 rounded-lg text-center">
+                                    <p className="text-sm text-gray-500">Referral Balance</p>
+                                    <p className="text-xl font-bold text-purple-600">{formatCurrency(user.referralBalance || 0)}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Tabs Section (Orders & Appointments) */}
+            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                <div className="flex border-b border-gray-200 mb-6">
+                    <button
+                        className={`py-2 px-4 font-medium ${activeTab === 'orders' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+                        onClick={() => setActiveTab('orders')}
+                    >
+                        Orders ({orders.length})
+                    </button>
+                    <button
+                        className={`py-2 px-4 font-medium ${activeTab === 'appointments' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+                        onClick={() => setActiveTab('appointments')}
+                    >
+                        Appointments ({appointments.length})
+                    </button>
+                </div>
+
+                {activeTab === 'orders' ? (
+                    <div>
+                        {orders.length === 0 ? (
+                            <div className="text-center py-8 text-gray-500">
+                                <FiShoppingBag className="mx-auto text-3xl mb-2" />
+                                <p>No orders found</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {orders.map((order) => (
+                                    <div key={order.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div>
+                                                <p className="font-medium text-gray-800">Order #{order.id.substring(0, 8)}</p>
+                                                <p className="text-sm text-gray-500">{formatDate(order.createdAt)}</p>
+                                            </div>
+                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${order.status === 'completed'
+                                                ? 'bg-green-100 text-green-800'
+                                                : order.status === 'pending'
+                                                    ? 'bg-yellow-100 text-yellow-800'
+                                                    : 'bg-red-100 text-red-800'
+                                                }`}>
+                                                {order.status}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <div className="flex items-center">
+                                                <FiDollarSign className="text-gray-400 mr-1" />
+                                                <span className="font-medium">{formatCurrency(order.totalAmount)}</span>
+                                            </div>
+                                            <div className="text-sm text-gray-500">
+                                                {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    <div>
+                        {appointments.length === 0 ? (
+                            <div className="text-center py-8 text-gray-500">
+                                <FiCalendar className="mx-auto text-3xl mb-2" />
+                                <p>No appointments found</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {appointments.map((appointment) => (
+                                    <div key={appointment.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div>
+                                                <p className="font-medium text-gray-800">
+                                                    Appointment with Dr. {appointment.doctorName}
+                                                </p>
+                                                <p className="text-sm text-gray-500">
+                                                    {formatDate(appointment.startTime)}
+                                                </p>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${appointment.isPaid
                                                     ? 'bg-green-100 text-green-800'
-                                                    : order.status === 'pending'
-                                                        ? 'bg-yellow-100 text-yellow-800'
-                                                        : 'bg-red-100 text-red-800'
+                                                    : 'bg-yellow-100 text-yellow-800'
                                                     }`}>
-                                                    {order.status}
+                                                    {appointment.isPaid ? 'Paid' : 'Pending Payment'}
+                                                </span>
+                                                <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                    {formatTimeRange(appointment.startTime, appointment.endTime)}
                                                 </span>
                                             </div>
-                                            <div className="flex justify-between items-center">
-                                                <div className="flex items-center">
-                                                    <FiDollarSign className="text-gray-400 mr-1" />
-                                                    <span className="font-medium">{formatCurrency(order.totalAmount)}</span>
-                                                </div>
-                                                <div className="text-sm text-gray-500">
-                                                    {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
-                                                </div>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <div className="flex items-center">
+                                                <FiDollarSign className="text-gray-400 mr-1" />
+                                                <span className="font-medium">{formatCurrency(appointment.price)}</span>
+                                            </div>
+                                            <div className="text-sm text-gray-500 max-w-[50%] truncate">
+                                                {appointment.complain || 'No complaint noted'}
                                             </div>
                                         </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    ) : (
-                        <div>
-                            {appointments.length === 0 ? (
-                                <div className="text-center py-8 text-gray-500">
-                                    <FiCalendar className="mx-auto text-3xl mb-2" />
-                                    <p>No appointments found</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-4">
-                                    {appointments.map((appointment) => (
-                                        <div key={appointment.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <div>
-                                                    <p className="font-medium text-gray-800">
-                                                        Appointment with Dr. {appointment.doctorName}
-                                                    </p>
-                                                    <p className="text-sm text-gray-500">
-                                                        {formatDate(appointment.startTime)}
-                                                    </p>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${appointment.isPaid
-                                                        ? 'bg-green-100 text-green-800'
-                                                        : 'bg-yellow-100 text-yellow-800'
-                                                        }`}>
-                                                        {appointment.isPaid ? 'Paid' : 'Pending Payment'}
-                                                    </span>
-                                                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                        {formatTimeRange(appointment.startTime, appointment.endTime)}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div className="flex justify-between items-center">
-                                                <div className="flex items-center">
-                                                    <FiDollarSign className="text-gray-400 mr-1" />
-                                                    <span className="font-medium">{formatCurrency(appointment.price)}</span>
-                                                </div>
-                                                <div className="text-sm text-gray-500 max-w-[50%] truncate">
-                                                    {appointment.complain || 'No complaint noted'}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Recent Activity Timeline */}

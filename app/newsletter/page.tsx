@@ -54,7 +54,8 @@ export default function NewsletterPage() {
 
       // 🔹 Send to backend
       const response = await fetch(
-        "https://us-central1-instant-doctor-a4e4c.cloudfunctions.net/api/mail/newsletter",
+        "http://localhost:3003/mail/newsletter",
+        // "https://us-central1-instant-doctor-a4e4c.cloudfunctions.net/api/mail/newsletter",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
