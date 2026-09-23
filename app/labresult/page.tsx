@@ -77,7 +77,11 @@ const Labresult = () => {
                       {labresult.userId}
                     </td>
                     <td>
-                      <a href={labresult.files[0].fileUrl} target='_blank'><img src="https://thumbs.dreamstime.com/b/blue-file-folder-documents-icon-isolated-white-34337927.jpg" alt="" height={100} width={100}/></a>
+                      {labresult.files?.[0]?.fileUrl ? (
+                        <a href={labresult.files[0].fileUrl} target='_blank'><img src="https://thumbs.dreamstime.com/b/blue-file-folder-documents-icon-isolated-white-34337927.jpg" alt="" height={100} width={100}/></a>
+                      ) : (
+                        <span className="text-gray-400">No file</span>
+                      )}
                     </td>
                    <td>
                       <a href={labresult.resultUrl} target='_blank'><img src="https://thumbs.dreamstime.com/b/blue-file-folder-documents-icon-isolated-white-34337927.jpg" alt="" height={100} width={100}/></a>
