@@ -7,9 +7,14 @@ import { FiClock, FiEye, FiX } from 'react-icons/fi'
 import { UserModel } from '@/app/model/user_model'
 import { getDoctors } from '@/server/doctors'
 import { formatDate } from '@/utils/formatTime'
+import { maskEmail, maskPhone } from '@/utils/roles'
+import { useRole } from '@/utils/useRole'
 
 
 const Doctors = () => {
+    const role = useRole()
+    // Marketers see masked contact details and no link to the full profile
+    const isAdmin = role === 'admin'
     const [doctors, setdoctors] = useState<UserModel[]>([])
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState('')
@@ -67,38 +72,38 @@ const Doctors = () => {
                 </div>
             </div>
 
-            <div className="w-full overflow-x-auto">
-                <table className="min-w-full text-sm text-left text-gray-500">
-                    <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+            <div className="table-card">
+                <table className="data-table">
+                    <thead>
                         <tr>
-                            <th scope="col" className="px-4 py-3">Name</th>
-                            <th scope="col" className="px-4 py-3">Email</th>
-                            <th scope="col" className="px-4 py-3">Phone Number</th>
-                            <th scope="col" className="px-4 py-3">Status</th>
-                            <th scope="col" className="px-4 py-3">Date</th>
-                            <th scope="col" className="px-4 py-3">Action</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Phone Number</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filtereddoctors.length === 0 ? (
-                            <tr className="bg-white border-b">
-                                <td colSpan={6} className="px-4 py-4 text-center">
+                            <tr>
+                                <td colSpan={6} className="text-center">
                                     {searchTerm ? 'No matching doctors found' : 'No doctors yet'}
                                 </td>
                             </tr>
                         ) : (
                             filtereddoctors.map((patient) => (
-                                <tr key={patient.id} className="bg-white border-b hover:bg-gray-50">
-                                    <td className="px-4 py-4 font-medium text-gray-900">
+                                <tr key={patient.id}>
+                                    <td className="font-medium text-gray-900">
                                         {patient.firstname + " " + patient.lastname}
                                     </td>
-                                    <td className="px-4 py-4">
-                                        {patient.email}
+                                    <td>
+                                        {isAdmin ? patient.email : maskEmail(patient.email)}
                                     </td>
-                                    <td className="px-4 py-4">
-                                        {patient.phoneNumber}
+                                    <td>
+                                        {isAdmin ? patient.phoneNumber : maskPhone(patient.phoneNumber)}
                                     </td>
-                                    <td className="px-4 py-4">
+                                    <td>
                                         <span
                                             className={`px-3 rounded-lg text-xs pb-1 text-white ${patient.accountStatus === 'pending' ? 'bg-yellow-500' :
                                                 patient.accountStatus === 'confirmed' ? 'bg-green-500' :
@@ -109,11 +114,14 @@ const Doctors = () => {
                                             {patient.accountStatus}
                                         </span>
                                     </td>
-                                    <td className="px-4 py-4">
+                                    <td>
                                         {formatDate(patient.createdAt == null ? Timestamp.now() : patient.createdAt)}
                                     </td>
                                     <td>
-                                        <Link href={`/users/doctors/${patient.id}`} className='bg-primary py-2 px-5 rounded-2xl text-white'>View</Link>
+                                        <div className="flex gap-2 whitespace-nowrap">
+                                            {isAdmin && <Link href={`/users/doctors/${patient.id}`} className="table-action">View</Link>}
+                                            {patient.email && <Link href={`/mail?userId=${patient.id}`} className="table-action">Email</Link>}
+                                        </div>
                                     </td>
                                 </tr>
                             ))

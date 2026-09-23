@@ -95,58 +95,58 @@ const Pharmacies = () => {
                 </div>
             </div>
 
-            <div className="w-full overflow-x-auto">
-                <table className="min-w-full text-sm text-left text-gray-500">
-                    <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+            <div className="table-card">
+                <table className="data-table">
+                    <thead>
                         <tr>
-                            <th scope="col" className="px-4 py-3">Name</th>
-                            <th scope="col" className="px-4 py-3">Address</th>
-                            <th scope="col" className="px-4 py-3">Email</th>
-                            <th scope="col" className="px-4 py-3">Phone Number</th>
-                            <th scope="col" className="px-4 py-3">Delivery Fee</th>
-                            <th scope="col" className="px-4 py-3">Date Added</th>
-                            <th scope="col" className="px-4 py-3">Edit</th>
-                            <th scope="col" className="px-4 py-3">Delete</th>
-                            <th scope="col" className="px-4 py-3">Action</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Address</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Phone Number</th>
+                            <th scope="col">Delivery Fee</th>
+                            <th scope="col">Date Added</th>
+                            <th scope="col">Edit</th>
+                            <th scope="col">Delete</th>
+                            <th scope="col">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredPharmacies.length === 0 ? (
-                            <tr className="bg-white border-b">
-                                <td colSpan={7} className="px-4 py-4 text-center">
+                            <tr>
+                                <td colSpan={7} className="text-center">
                                     {searchTerm ? 'No matching pharmacies found' : 'No pharmacies registered yet'}
                                 </td>
                             </tr>
                         ) : (
                             filteredPharmacies.map((pharmacy) => (
-                                <tr key={pharmacy.id} className="bg-white border-b hover:bg-gray-50">
-                                    <td className="px-4 py-4 font-medium text-gray-900">
+                                <tr key={pharmacy.id}>
+                                    <td className="font-medium text-gray-900">
                                         {pharmacy.name}
                                     </td>
-                                    <td className="px-4 py-4">
+                                    <td>
                                         {pharmacy.address}
                                     </td>
-                                    <td className="px-4 py-4">
+                                    <td>
                                         {pharmacy.email}
                                     </td>
-                                    <td className="px-4 py-4">
+                                    <td>
                                         {pharmacy.phoneNumber}
                                     </td>
-                                    <td className="px-4 py-4">
+                                    <td>
                                         {pharmacy.deliveryFee}
                                     </td>
-                                    <td className="px-4 py-4">
+                                    <td>
                                         {formatDate(pharmacy.createdAt)}
                                     </td>
-                                    <td className="px-4 py-4">
+                                    <td>
                                         <Link
                                             href={`/pharmacies/edit/${pharmacy.id}`}
-                                            className="bg-green-500 py-2 px-5 rounded-2xl text-white"
+                                            className="table-action"
                                         >
                                             Edit
                                         </Link>
                                     </td>
-                                    <td className="px-4 py-4">
+                                    <td>
                                         <button
                                             onClick={() => handleDeletePharmacy(pharmacy.id)}
                                             className="px-5 py-2 bg-red-500 rounded-2xl text-white hover:bg-red-600 transition"
@@ -155,10 +155,10 @@ const Pharmacies = () => {
                                             {pharmacy.status === 'deleted' ? 'Deleted' : 'Delete'}
                                         </button>
                                     </td>
-                                    <td className="px-4 py-4">
+                                    <td>
                                         <Link
                                             href={`/pharmacies/${pharmacy.id}`}
-                                            className="bg-primary py-2 px-5 rounded-2xl text-white"
+                                            className="table-action"
                                         >
                                             View
                                         </Link>

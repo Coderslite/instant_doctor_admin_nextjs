@@ -102,51 +102,51 @@ const PendingWithdrawals = () => {
                 </div>
             </div>
 
-            <div className="w-full overflow-x-auto">
-                <table className="min-w-full text-sm text-left text-gray-500">
-                    <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+            <div className="table-card">
+                <table className="data-table">
+                    <thead>
                         <tr>
-                            <th scope="col" className="px-4 py-3">Type</th>
-                            <th scope="col" className="px-4 py-3">Bank Details</th>
-                            <th scope="col" className="px-4 py-3">Status</th>
-                            <th scope="col" className="px-4 py-3">Amount</th>
-                            <th scope="col" className="px-4 py-3">Date</th>
-                            <th scope="col" className="px-4 py-3">Reference</th>
-                            <th scope="col" className="px-4 py-3">Action</th>
+                            <th scope="col">Type</th>
+                            <th scope="col">Bank Details</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Amount</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Reference</th>
+                            <th scope="col">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredWithdrawals.length === 0 ? (
-                            <tr className="bg-white border-b">
-                                <td colSpan={7} className="px-4 py-4 text-center">
+                            <tr>
+                                <td colSpan={7} className="text-center">
                                     {searchTerm ? 'No matching withdrawals found' : 'No pending withdrawals yet'}
                                 </td>
                             </tr>
                         ) : (
                             filteredWithdrawals.map((withdrawal) => (
-                                <tr key={withdrawal.id} className="bg-white border-b hover:bg-gray-50">
-                                    <td className="px-4 py-4 font-medium text-gray-900 capitalize">
+                                <tr key={withdrawal.id}>
+                                    <td className="font-medium text-gray-900 capitalize">
                                         {withdrawal.type}
                                     </td>
-                                    <td className="px-4 py-4">
+                                    <td>
                                         <div className="font-medium text-gray-900">{withdrawal.bankName}</div>
                                         <div className="text-sm text-gray-500">
                                             {withdrawal.accountName} ({withdrawal.accountNumber})
                                         </div>
                                     </td>
-                                    <td className="px-4 py-4">
+                                    <td>
                                         <span className='bg-yellow-100 text-yellow-800 rounded-full px-3 py-1 text-xs flex items-center w-fit'>
                                             <FiAlertCircle className="mr-1" /> Pending
                                         </span>
                                     </td>
-                                    <td className="px-4 py-4">₦{withdrawal.amount.toLocaleString()}</td>
-                                    <td className="px-4 py-4">{formatDate(withdrawal.createdAt!)}</td>
-                                    <td className="px-4 py-4 font-mono">{withdrawal.id}</td>
-                                    <td className="px-4 py-4">
+                                    <td>₦{withdrawal.amount.toLocaleString()}</td>
+                                    <td>{formatDate(withdrawal.createdAt!)}</td>
+                                    <td className="font-mono">{withdrawal.id}</td>
+                                    <td>
                                         <div className="flex gap-2">
                                             <Link
                                                 href={`/withdrawals/${withdrawal.id}`}
-                                                className='inline-flex items-center bg-blue-500 text-white px-3 py-1 rounded-lg text-sm'
+                                                className="table-action"
                                             >
                                                 <FiEye className="mr-1" /> View
                                             </Link>

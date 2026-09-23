@@ -153,20 +153,20 @@ const PharmacyDetail = () => {
                                     {stocks.length === 0 ? (
                                         <p className="text-gray-500">No stocks found for this pharmacy</p>
                                     ) : (
-                                        <div className="overflow-x-auto">
-                                            <table className="min-w-full divide-y divide-gray-200">
-                                                <thead className="bg-gray-50">
+                                        <div className="table-card">
+                                            <table className="data-table">
+                                                <thead>
                                                     <tr>
-                                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                                        <th>Name</th>
+                                                        <th>Price</th>
+                                                        <th>Quantity</th>
+                                                        <th>Status</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody className="bg-white divide-y divide-gray-200">
+                                                <tbody>
                                                     {stocks.map((stock) => (
                                                         <tr key={stock.id}>
-                                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                            <td className="whitespace-nowrap">
                                                                 <div className="flex items-center">
                                                                     {stock.images?.[0] && (
                                                                         <div className="flex-shrink-0 h-10 w-10">
@@ -185,13 +185,13 @@ const PharmacyDetail = () => {
                                                                     </div>
                                                                 </div>
                                                             </td>
-                                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                            <td className="whitespace-nowrap">
                                                                 {formatCurrency(stock.amount || 0)}
                                                             </td>
-                                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                            <td className="whitespace-nowrap">
                                                                 {stock.remaining}
                                                             </td>
-                                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                            <td className="whitespace-nowrap">
                                                                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${(stock.remaining || 0) > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                                                                     }`}>
                                                                     {(stock.remaining || 0) > 0 ? 'In Stock' : 'Out of Stock'}
@@ -210,29 +210,29 @@ const PharmacyDetail = () => {
                                     {orders.length === 0 ? (
                                         <p className="text-gray-500">No orders found for this pharmacy</p>
                                     ) : (
-                                        <div className="overflow-x-auto">
-                                            <table className="min-w-full divide-y divide-gray-200">
-                                                <thead className="bg-gray-50">
+                                        <div className="table-card">
+                                            <table className="data-table">
+                                                <thead>
                                                     <tr>
-                                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
-                                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                                        <th>Order ID</th>
+                                                        <th>Date</th>
+                                                        <th>Amount</th>
+                                                        <th>Status</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody className="bg-white divide-y divide-gray-200">
+                                                <tbody>
                                                     {orders.map((order) => (
                                                         <tr key={order.id}>
-                                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                            <td className="whitespace-nowrap font-medium text-gray-900">
                                                                 #{order.trackingId || order.id.slice(0, 8)}
                                                             </td>
-                                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                            <td className="whitespace-nowrap">
                                                                 {formatDate(order.createdAt)}
                                                             </td>
-                                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                            <td className="whitespace-nowrap">
                                                                 {formatCurrency(order.totalAmount || 0)}
                                                             </td>
-                                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                            <td className="whitespace-nowrap">
                                                                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${order.status === 'completed' ? 'bg-green-100 text-green-800' :
                                                                     order.status === 'cancelled' ? 'bg-red-100 text-red-800' :
                                                                         'bg-yellow-100 text-yellow-800'

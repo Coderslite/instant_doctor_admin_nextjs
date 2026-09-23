@@ -6,6 +6,8 @@ import { toast } from 'react-hot-toast'
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
 import { db } from '@/firebase/clientApp'
 import { collection, query, where, getDocs } from 'firebase/firestore'
+import { ROLE_COOKIE, normalizeRole } from '@/utils/roles'
+import { verifyPassword } from '@/utils/password'
 
 const Login = () => {
     const router = useRouter()
@@ -21,7 +23,7 @@ const Login = () => {
         try {
             // Direct Firestore query (matches your backend pattern)
             const pharmaciesRef = collection(db, 'Administrator')
-            const q = query(pharmaciesRef, where('email', '==', email))
+            const q = query(pharmaciesRef, where('email', '==', email.trim().toLowerCase()))
             const querySnapshot = await getDocs(q)
 
             if (querySnapshot.empty) {
@@ -31,8 +33,8 @@ const Login = () => {
             const pharmacyDoc = querySnapshot.docs[0]
             const pharmacyData = pharmacyDoc.data()
 
-            // Password comparison (in production, use bcrypt!)
-            if (pharmacyData.password !== password) {
+            // Handles both hashed accounts and older plain-text ones
+            if (!(await verifyPassword(pharmacyData, password))) {
                 throw new Error('Invalid password')
             }
 
@@ -46,6 +48,7 @@ const Login = () => {
 
             setCookie('adminId', pharmacyDoc.id, 7) // 7 days expiration
             setCookie('adminName', pharmacyData.name, 7)
+            setCookie(ROLE_COOKIE, normalizeRole(pharmacyData.role), 7)
 
             toast.success('Login successful!')
             router.push('/')

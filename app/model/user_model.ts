@@ -18,6 +18,7 @@ export interface UserModel {
     lastSeen?: Timestamp;
     token?: string;
     address?: string;
+    country?: string;
     createdAt?: Timestamp;
     role?: string;
     // for doctors

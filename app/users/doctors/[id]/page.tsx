@@ -373,33 +373,33 @@ const DoctorAppointments = () => {
                         <p>No appointments found</p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full table-auto border-collapse">
+                    <div className="table-card">
+                        <table className="data-table">
                             <thead>
-                                <tr className="bg-gray-50">
-                                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Patient</th>
-                                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Date</th>
-                                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Time</th>
-                                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Payment</th>
-                                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Status</th>
-                                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Price</th>
-                                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Complaint</th>
-                                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Actions</th>
+                                <tr>
+                                    <th>Patient</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Payment</th>
+                                    <th>Status</th>
+                                    <th>Price</th>
+                                    <th>Complaint</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {appointments.map((appointment) => (
-                                    <tr key={appointment.id} className="border-b border-gray-200 hover:bg-gray-50">
-                                        <td className="px-4 py-2 text-sm text-gray-600">
+                                    <tr key={appointment.id}>
+                                        <td className="text-gray-600">
                                             {appointment.patientName || 'Unknown'}
                                         </td>
-                                        <td className="px-4 py-2 text-sm text-gray-600">
+                                        <td className="text-gray-600">
                                             {formatDate(appointment.startTime)}
                                         </td>
-                                        <td className="px-4 py-2 text-sm text-gray-600">
+                                        <td className="text-gray-600">
                                             {formatTimeRange(appointment.startTime, appointment.endTime)}
                                         </td>
-                                        <td className="px-4 py-2">
+                                        <td>
                                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${appointment.isPaid
                                                 ? 'bg-green-100 text-green-800'
                                                 : 'bg-yellow-100 text-yellow-800'
@@ -407,7 +407,7 @@ const DoctorAppointments = () => {
                                                 {appointment.isPaid ? 'Paid' : 'Pending'}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-2">
+                                        <td>
                                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${appointment.status === 'upcoming'
                                                 ? 'bg-blue-100 text-blue-800'
                                                 : appointment.status === 'completed'
@@ -419,16 +419,16 @@ const DoctorAppointments = () => {
                                                 {appointment.status ? appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1) : 'Unknown'}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-2 text-sm text-gray-600">
+                                        <td className="text-gray-600">
                                             {appointment.price == 0 ? 'Trial' : formatCurrency(appointment.price)}
                                         </td>
-                                        <td className="px-4 py-2 text-sm text-gray-600 max-w-[200px] truncate">
+                                        <td className="text-gray-600 max-w-[200px] truncate">
                                             {appointment.complain || 'No complaint noted'}
                                         </td>
-                                        <td className="px-4 py-2">
+                                        <td>
                                             <Link
                                                 href={`/appointments/details/${appointment.id}`}
-                                                className="flex items-center text-blue-500 hover:text-blue-700 text-sm"
+                                                className="table-action"
                                             >
                                                 <FiEye className="mr-1" /> View
                                             </Link>

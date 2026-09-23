@@ -12,9 +12,15 @@ import { AppointmentModel } from '@/app/model/appointment_model'
 import Link from 'next/link'
 import { Timestamp } from 'firebase/firestore'
 import { formatDate } from '@/utils/formatTime'
+import { maskEmail, maskPhone } from '@/utils/roles'
+import { useRole } from '@/utils/useRole'
+import { FiLock, FiSend } from 'react-icons/fi'
 
 const PatientDetails = () => {
     const { id } = useParams()
+    const role = useRole()
+    // Marketers get a restricted profile: no medical, financial or activity details
+    const isAdmin = role === 'admin'
     const [user, setUser] = useState<UserModel | null>(null)
     const [orders, setOrders] = useState<OrderModel[]>([])
     const [appointments, setAppointments] = useState<(AppointmentModel & { doctorName: string })[]>([])
@@ -121,7 +127,7 @@ const PatientDetails = () => {
         })
     }
 
-    if (loading) {
+    if (loading || role === null) {
         return (
             <div className="flex justify-center items-center h-64">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
@@ -162,21 +168,33 @@ const PatientDetails = () => {
                     <div className="space-y-4">
                         <div className="flex items-center">
                             <FiMail className="text-gray-400 mr-3" />
-                            <span className="text-gray-600">{user.email}</span>
+                            <span className="text-gray-600">{isAdmin ? user.email : maskEmail(user.email)}</span>
                         </div>
                         <div className="flex items-center">
                             <FiPhone className="text-gray-400 mr-3" />
-                            <span className="text-gray-600">{user.phoneNumber || 'Not provided'}</span>
+                            <span className="text-gray-600">{user.phoneNumber ? (isAdmin ? user.phoneNumber : maskPhone(user.phoneNumber)) : 'Not provided'}</span>
                         </div>
                         <div className="flex items-center">
                             <FiHome className="text-gray-400 mr-3" />
-                            <span className="text-gray-600">{user.address || 'Not provided'}</span>
+                            <span className="text-gray-600">
+                                {user.address || 'Not provided'}
+                                {user.country && !user.address?.toLowerCase().includes(user.country.toLowerCase()) && (
+                                    <span className="block text-sm text-gray-400">{user.country}</span>
+                                )}
+                            </span>
                         </div>
                         <div className="flex items-center">
                             <FiCalendar className="text-gray-400 mr-3" />
                             <span className="text-gray-600">
-                                {formatBirthDate(user.dob)} {user.dob && (
-                                    <>({getAge(user.dob)} years)</>
+                                {isAdmin ? (
+                                    <>
+                                        {formatBirthDate(user.dob)} {user.dob && (
+                                            <>({getAge(user.dob)} years)</>
+                                        )}
+                                    </>
+                                ) : (
+                                    // Age only; the exact birth date is admin-only
+                                    user.dob ? `${getAge(user.dob)} years old` : 'Age not provided'
                                 )}
                             </span>
                         </div>
@@ -184,6 +202,8 @@ const PatientDetails = () => {
                             <FiUser className="text-gray-400 mr-3" />
                             <span className="text-gray-600">{user.gender || 'Not specified'}</span>
                         </div>
+                        {isAdmin && (
+                        <>
                         <div className="flex items-center">
                             <FiDroplet className="text-gray-400 mr-3" />
                             <span className="text-gray-600">Blood Group: {user.bloodGroup || 'Unknown'}</span>
@@ -198,6 +218,8 @@ const PatientDetails = () => {
                                 Marital Status: {user.maritalStatus || 'Not specified'}
                             </span>
                         </div>
+                        </>
+                        )}
                     </div>
 
                     <div className="mt-6 pt-4 border-t border-gray-200">
@@ -214,6 +236,47 @@ const PatientDetails = () => {
                     </div>
                 </div>
 
+                {!isAdmin && (
+                    <div className="bg-white rounded-lg shadow-md p-6 lg:col-span-2">
+                        <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
+                            <h3 className="text-lg font-semibold text-gray-800">Engagement</h3>
+                            {user.email && (
+                                <Link href={`/mail?userId=${user.id}`} className="table-action table-action-primary">
+                                    <FiSend /> Send email
+                                </Link>
+                            )}
+                        </div>
+                        <div className="grid sm:grid-cols-2 gap-4">
+                            <div className="bg-gray-50 p-4 rounded-lg">
+                                <p className="text-sm text-gray-500">Member since</p>
+                                <p className="font-medium">{user.createdAt ? formatBirthDate(user.createdAt) : 'Unknown'}</p>
+                            </div>
+                            <div className="bg-gray-50 p-4 rounded-lg">
+                                <p className="text-sm text-gray-500">Last seen</p>
+                                <p className="font-medium">{user.lastSeen ? formatDate(user.lastSeen) : 'No record'}</p>
+                            </div>
+                            <div className="bg-gray-50 p-4 rounded-lg">
+                                <p className="text-sm text-gray-500">Referral program</p>
+                                <p className="font-medium">
+                                    {user.referralProgramApplied
+                                        ? (user.referralEnabled ? 'Joined · active' : 'Joined · inactive')
+                                        : 'Not joined'}
+                                </p>
+                            </div>
+                            <div className="bg-gray-50 p-4 rounded-lg">
+                                <p className="text-sm text-gray-500">Country</p>
+                                <p className="font-medium">{user.country || 'Not provided'}</p>
+                            </div>
+                        </div>
+                        <p className="mt-5 flex items-start gap-2 text-sm text-gray-500">
+                            <FiLock className="mt-0.5 shrink-0" />
+                            Medical records, full contact details, banking, balances and appointment history are only visible to admins.
+                        </p>
+                    </div>
+                )}
+
+                {isAdmin && (
+                <>
                 {/* Patient Medical Information */}
                 <div className="bg-white rounded-lg shadow-md p-6 col-span-1">
                     <h3 className="text-lg font-semibold text-gray-800 mb-4">Medical Information</h3>
@@ -383,8 +446,12 @@ const PatientDetails = () => {
                         </div>
                     </div>
                 </div>
+                </>
+                )}
             </div>
 
+            {isAdmin && (
+            <>
             {/* Tabs Section (Orders & Appointments) */}
             <div className="bg-white rounded-lg shadow-md p-6 mb-8">
                 <div className="flex border-b border-gray-200 mb-6">
@@ -558,6 +625,8 @@ const PatientDetails = () => {
                     )}
                 </div>
             </div>
+            </>
+            )}
         </div>
     )
 }

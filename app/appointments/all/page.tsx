@@ -108,22 +108,22 @@ const AllAppointments = () => {
                 </div>
             </div>
 
-            <div className="w-full overflow-x-auto">
-                <table className="min-w-full text-sm text-left text-gray-500">
-                    <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+            <div className="table-card">
+                <table className="data-table">
+                    <thead>
                         <tr>
-                            <th scope="col" className="px-4 py-3">Patient</th>
-                            <th scope="col" className="px-4 py-3">Doctor</th>
-                            <th scope="col" className="px-4 py-3">Status</th>
-                            <th scope="col" className="px-4 py-3">Complaint</th>
-                            <th scope="col" className="px-4 py-3">Date & Time</th>
-                            <th scope="col" className="px-4 py-3">Action</th>
+                            <th scope="col">Patient</th>
+                            <th scope="col">Doctor</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Complaint</th>
+                            <th scope="col">Date & Time</th>
+                            <th scope="col">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredAppointments.length === 0 ? (
-                            <tr className="bg-white border-b">
-                                <td colSpan={6} className="px-4 py-4 text-center">
+                            <tr>
+                                <td colSpan={6} className="text-center">
                                     {searchTerm ? 'No appointments found' : 'No appointments scheduled'}
                                 </td>
                             </tr>
@@ -134,35 +134,35 @@ const AllAppointments = () => {
                                     appointment.endTime.toDate()
                                 )
                                 return (
-                                    <tr key={appointment.id} className="bg-white border-b hover:bg-gray-50">
-                                        <td className="px-4 py-4 font-medium text-gray-900">
+                                    <tr key={appointment.id}>
+                                        <td className="font-medium text-gray-900">
                                             <div className="flex items-center">
                                                 <FiUser className="mr-2 text-gray-400" />
                                                 {appointment.patientName}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-4">
+                                        <td>
                                             {appointment.doctorName || 'Unassigned'}
                                         </td>
-                                        <td className="px-4 py-4">
+                                        <td>
                                             <span className={`${statusClass} rounded-full px-3 py-1 text-xs flex items-center w-fit`}>
                                                 {icon}
                                                 {status.charAt(0).toUpperCase() + status.slice(1)}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-4 max-w-xs truncate">
+                                        <td className="max-w-xs truncate">
                                             {appointment.complain || 'No complaint noted'}
                                         </td>
-                                        <td className="px-4 py-4">
+                                        <td>
                                             <div className="flex items-center">
                                                 <FiCalendar className="mr-2 text-gray-400" />
                                                 {formatAppointmentDateTime(appointment.startTime.toDate())}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-4">
+                                        <td>
                                             <Link
                                                 href={`/appointments/details/${appointment.id}`}
-                                                className='inline-flex items-center bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-sm transition-colors'
+                                                className="table-action"
                                             >
                                                 <FiEye className="mr-1" /> View
                                             </Link>

@@ -54,35 +54,35 @@ const Labresult = () => {
             <FaSpinner className="animate-spin text-4xl text-blue-500" />
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white">
+          <div className="table-card">
+            <table className="data-table">
               <thead>
-                <tr className="border-b">
-                  <th className="py-3 px-4 text-left">ID</th>
-                  <th className="py-3 px-4 text-left">UserId</th>
-                  <th className="py-3 px-4 text-left">File Url</th>
-                  <th className="py-3 px-4 text-left">Result Url</th>
-                  <th className="py-3 px-4 text-left">Status</th>
-                  <th className="py-3 px-4 text-left">Date</th>
-                  <th className="py-3 px-4 text-left">View</th>
+                <tr>
+                  <th>ID</th>
+                  <th>UserId</th>
+                  <th>File Url</th>
+                  <th>Result Url</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th>View</th>
                 </tr>
               </thead>
               <tbody>
                 {Labresults.map((labresult, index) => (
-                  <tr key={labresult.id} className="border-b hover:bg-gray-50">
-                    <td className="py-3 px-4">
+                  <tr key={labresult.id}>
+                    <td>
                       {index + 1}
                     </td>
-                    <td className="py-3 px-4">
+                    <td>
                       {labresult.userId}
                     </td>
-                    <td className="py-3 px-4">
+                    <td>
                       <a href={labresult.files[0].fileUrl} target='_blank'><img src="https://thumbs.dreamstime.com/b/blue-file-folder-documents-icon-isolated-white-34337927.jpg" alt="" height={100} width={100}/></a>
                     </td>
-                   <td className="py-3 px-4">
+                   <td>
                       <a href={labresult.resultUrl} target='_blank'><img src="https://thumbs.dreamstime.com/b/blue-file-folder-documents-icon-isolated-white-34337927.jpg" alt="" height={100} width={100}/></a>
                     </td>
-                    <td className="py-3 px-4">
+                    <td>
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-medium ${labresult.status === 'Completed'
                           ? 'bg-green-100 text-green-800'
@@ -92,11 +92,11 @@ const Labresult = () => {
                         {labresult.status.toUpperCase()}
                       </span>
                     </td>
-                    <td className="py-3 px-4">
+                    <td>
                       {new Date(labresult.createdAt.toDate()).toLocaleDateString()}
                     </td>
-                    <td className="py-3 px-4">
-                      <Link href={`/labresult/${labresult.id}`} className='bg-primary text-white px-5 rounded py-2'>View</Link>
+                    <td>
+                      <Link href={`/labresult/${labresult.id}`} className="table-action">View</Link>
                     </td>
                   </tr>
                 ))}

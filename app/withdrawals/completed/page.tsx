@@ -86,50 +86,50 @@ const CompletedWithdrawals = () => {
                 </div>
             </div>
 
-            <div className="w-full overflow-x-auto">
-                <table className="min-w-full text-sm text-left text-gray-500">
-                    <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+            <div className="table-card">
+                <table className="data-table">
+                    <thead>
                         <tr>
-                            <th scope="col" className="px-4 py-3">Type</th>
-                            <th scope="col" className="px-4 py-3">Bank Details</th>
-                            <th scope="col" className="px-4 py-3">Status</th>
-                            <th scope="col" className="px-4 py-3">Amount</th>
-                            <th scope="col" className="px-4 py-3">Request Date</th>
-                            <th scope="col" className="px-4 py-3">Approved By</th>
-                            <th scope="col" className="px-4 py-3">Action</th>
+                            <th scope="col">Type</th>
+                            <th scope="col">Bank Details</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Amount</th>
+                            <th scope="col">Request Date</th>
+                            <th scope="col">Approved By</th>
+                            <th scope="col">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredWithdrawals.length === 0 ? (
-                            <tr className="bg-white border-b">
-                                <td colSpan={7} className="px-4 py-4 text-center">
+                            <tr>
+                                <td colSpan={7} className="text-center">
                                     {searchTerm ? 'No matching withdrawals found' : 'No completed withdrawals yet'}
                                 </td>
                             </tr>
                         ) : (
                             filteredWithdrawals.map((withdrawal) => (
-                                <tr key={withdrawal.id} className="bg-white border-b hover:bg-gray-50">
-                                    <td className="px-4 py-4 font-medium text-gray-900 capitalize">
+                                <tr key={withdrawal.id}>
+                                    <td className="font-medium text-gray-900 capitalize">
                                         {withdrawal.type}
                                     </td>
-                                    <td className="px-4 py-4">
+                                    <td>
                                         <div className="font-medium text-gray-900">{withdrawal.bankName}</div>
                                         <div className="text-sm text-gray-500">
                                             {withdrawal.accountName} ({withdrawal.accountNumber})
                                         </div>
                                     </td>
-                                    <td className="px-4 py-4">
+                                    <td>
                                         <span className='bg-green-100 text-green-800 rounded-full px-3 py-1 text-xs flex items-center w-fit'>
                                             <FiCheckCircle className="mr-1" /> Completed
                                         </span>
                                     </td>
-                                    <td className="px-4 py-4">₦{withdrawal.amount.toLocaleString()}</td>
-                                    <td className="px-4 py-4">{formatDate(withdrawal.date)}</td>
-                                    <td className="px-4 py-4">{withdrawal.approvedBy || 'System'}</td>
-                                    <td className="px-4 py-4">
+                                    <td>₦{withdrawal.amount.toLocaleString()}</td>
+                                    <td>{formatDate(withdrawal.date)}</td>
+                                    <td>{withdrawal.approvedBy || 'System'}</td>
+                                    <td>
                                         <Link
                                             href={`/withdrawals/${withdrawal.id}`}
-                                            className='inline-flex items-center bg-blue-500 text-white px-3 py-1 rounded-lg text-sm'
+                                            className="table-action"
                                         >
                                             <FiEye className="mr-1" /> View
                                         </Link>

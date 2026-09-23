@@ -221,20 +221,20 @@ const OrderDetails = () => {
                 {/* Order Items */}
                 <div className="p-6">
                     <h2 className="text-xl font-semibold mb-4">Order Items</h2>
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
+                    <div className="table-card">
+                        <table className="data-table">
+                            <thead>
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th>Qty</th>
+                                    <th>Total</th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody>
                                 {order.items.map((item: ItemModel, index: number) => (
                                     <tr key={index}>
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="whitespace-nowrap">
                                             <div className="flex items-center">
                                                 <Image
                                                     src={item.images[0] || '/default-product.png'}
@@ -246,9 +246,9 @@ const OrderDetails = () => {
                                                 <div className="ml-4 text-sm font-medium text-gray-900">{item.name}</div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-gray-500">NGN {item.amount.toLocaleString()}</td>
-                                        <td className="px-6 py-4 text-sm text-gray-500">{item.quantity || 1}</td>
-                                        <td className="px-6 py-4 text-sm font-semibold text-gray-900">
+                                        <td>NGN {item.amount.toLocaleString()}</td>
+                                        <td>{item.quantity || 1}</td>
+                                        <td className="font-semibold text-gray-900">
                                             NGN {(item.amount * (item.quantity || 1)).toLocaleString()}
                                         </td>
                                     </tr>

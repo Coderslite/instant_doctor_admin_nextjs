@@ -77,30 +77,30 @@ const Waitlist = () => {
                         <FaSpinner className="animate-spin text-4xl text-blue-500" />
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full bg-white">
+                    <div className="table-card">
+                        <table className="data-table">
                             <thead>
-                                <tr className="border-b">
-                                    <th className="py-3 px-4 text-left">Address</th>
-                                    <th className="py-3 px-4 text-left">LatLng</th>
-                                    <th className="py-3 px-4 text-left">Status</th>
-                                    <th className="py-3 px-4 text-left">Date</th>
-                                    <th className="py-3 px-4 text-left">Action</th>
+                                <tr>
+                                    <th>Address</th>
+                                    <th>LatLng</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {waitlists.map((waitlist) => (
-                                    <tr key={waitlist.id} className="border-b hover:bg-gray-50">
-                                        <td className="py-3 px-4">
+                                    <tr key={waitlist.id}>
+                                        <td>
                                             {waitlist.address.length > 50
                                                 ? `${waitlist.address.substring(0, 50)}...`
                                                 : waitlist.address}
                                         </td>
-                                        <td className="py-3 px-4">
+                                        <td>
                                             lat: <span className="text-green-600">{waitlist.location.latitude.toString()}</span>,<br />
                                             lng: <span className="text-green-600">{waitlist.location.longitude.toString()}</span>,
                                         </td>
-                                        <td className="py-3 px-4">
+                                        <td>
                                             <span
                                                 className={`px-2 py-1 rounded-full text-xs font-medium ${waitlist.status === 'completed'
                                                     ? 'bg-green-100 text-green-800'
@@ -110,10 +110,10 @@ const Waitlist = () => {
                                                 {waitlist.status.toUpperCase()}
                                             </span>
                                         </td>
-                                        <td className="py-3 px-4">
+                                        <td>
                                             {new Date(waitlist.createdAt.toDate()).toLocaleDateString()}
                                         </td>
-                                        <td className="py-3 px-4">
+                                        <td>
                                             <button
                                                 onClick={() => handleMarkComplete(waitlist.id, waitlist.userId)}
                                                 disabled={waitlist.status === 'completed'}

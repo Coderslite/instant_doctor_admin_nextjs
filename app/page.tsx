@@ -21,6 +21,8 @@ import {
 } from "@/server/admin";
 import { fetchWithCache } from "@/server/data-fetching";
 import { getPendingAnonymousMessages } from "@/server/anonymous";
+import { canAccess, getRoleFromCookie } from "@/utils/roles";
+import { useRole } from "@/utils/useRole";
 
 interface AppointmentWithNames extends AppointmentModel {
   doctorName: string;
@@ -43,6 +45,9 @@ interface DashboardStats {
 }
 
 const Home = () => {
+  const role = useRole();
+  // Only link cards to pages this role can open
+  const linkFor = (href: string) => (canAccess(role, href) ? href : undefined);
   const [appointments, setAppointments] = useState<AppointmentWithNames[]>([]);
   const [stats, setStats] = useState<Partial<DashboardStats>>({});
   const [loading, setLoading] = useState({
@@ -54,30 +59,39 @@ const Home = () => {
   useEffect(() => {
     const fetchCriticalData = async () => {
       try {
-        const [
-          patients,
-          doctors,
-          totalPharmacyEarnings,
-          totalPharmacyBalance,
-          totalDoctorEarnings,
-          totalDoctorBalance
-        ] = await Promise.all([
+        // Financial totals are admin-only, so don't fetch them for other roles
+        const includeFinancials = getRoleFromCookie() === 'admin';
+        const skip = () => Promise.resolve(undefined);
+
+        // allSettled so one failing query doesn't blank every card
+        const results = await Promise.allSettled([
           fetchWithCache('patients', () => getPatients().then(res => res.length)),
           fetchWithCache('doctors', () => getDoctors().then(res => res.length)),
-          fetchWithCache('pharmacyEarnings', getTotalPharmacyEarnings),
-          fetchWithCache('pharmacyBalances', getTotalPharmacyBalances),
-          fetchWithCache('doctorEarnings', getTotalDoctorEarnings),
-          fetchWithCache('doctorBalances', getTotalDoctorBalances)
+          includeFinancials ? fetchWithCache('pharmacyEarnings', getTotalPharmacyEarnings) : skip(),
+          includeFinancials ? fetchWithCache('pharmacyBalances', getTotalPharmacyBalances) : skip(),
+          includeFinancials ? fetchWithCache('doctorEarnings', getTotalDoctorEarnings) : skip(),
+          includeFinancials ? fetchWithCache('doctorBalances', getTotalDoctorBalances) : skip()
         ]);
+        const keys = [
+          'patients',
+          'doctors',
+          'totalPharmacyEarnings',
+          'totalPharmacyBalance',
+          'totalDoctorEarnings',
+          'totalDoctorBalance'
+        ] as const;
 
-        setStats({
-          patients,
-          doctors,
-          totalPharmacyEarnings,
-          totalPharmacyBalance,
-          totalDoctorEarnings,
-          totalDoctorBalance
+        const values: Partial<DashboardStats> = {};
+        results.forEach((result, i) => {
+          if (result.status === 'fulfilled') {
+            values[keys[i]] = result.value;
+          } else {
+            console.error(`Error fetching ${keys[i]}:`, result.reason);
+          }
         });
+
+        // Merge with prev: secondary data may have already arrived
+        setStats((prev: Partial<DashboardStats>) => ({ ...prev, ...values }));
       } catch (error) {
         console.error("Error fetching critical data:", error);
       } finally {
@@ -135,9 +149,19 @@ const Home = () => {
     fetchAppointments();
   }, []);
 
-  // Formatting functions remain the same
-  const formatDate = (timestamp: Timestamp) => { /* ... */ };
-  const formatTimeRange = (startTime: Timestamp, endTime: Timestamp) => { /* ... */ };
+  const formatDate = (timestamp: Timestamp) => {
+    const date = timestamp.toDate();
+    const now = new Date();
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    if (date.toDateString() === now.toDateString()) return 'Today';
+    if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+    return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+  const formatTimeRange = (startTime: Timestamp, endTime: Timestamp) => {
+    const time = (t: Timestamp) => t.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return `${time(startTime)} – ${time(endTime)}`;
+  };
 
   const isLoading = loading.critical || loading.secondary || loading.appointments;
 
@@ -145,7 +169,8 @@ const Home = () => {
     <div className="p-6">
       <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-8">Admin Dashboard</h1>
 
-      {/* Financial Summary Cards - Loads first */}
+      {/* Financial Summary Cards - Loads first (admin only) */}
+      {role === 'admin' && (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
         {loading.critical ? (
           [...Array(4)].map((_, i) => (
@@ -188,6 +213,7 @@ const Home = () => {
           </>
         )}
       </div>
+      )}
 
       {/* User Stats Cards - Loads next */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
@@ -204,7 +230,7 @@ const Home = () => {
               description="Registered patients"
               bgColor="bg-gradient-to-r from-emerald-600 to-emerald-500"
               textColor="text-white"
-              link="/users/patients"
+              link={linkFor("/users/patients")}
             />
             <StatCard
               icon={<FiUser className="text-black text-2xl" />}
@@ -213,7 +239,7 @@ const Home = () => {
               description="Verified doctors"
               bgColor="bg-gradient-to-r from-pink-600 to-pink-500"
               textColor="text-white"
-              link="/users/doctors"
+              link={linkFor("/users/doctors")}
             />
             <StatCard
               icon={<FiUser className="text-black text-2xl" />}
@@ -222,7 +248,7 @@ const Home = () => {
               description="Awaiting verification"
               bgColor="bg-gradient-to-r from-orange-600 to-orange-500"
               textColor="text-white"
-              link="/anonymous"
+              link={linkFor("/anonymous")}
             />
             <StatCard
               icon={<MdOutlineInventory2 className="text-black text-2xl" />}
@@ -231,7 +257,7 @@ const Home = () => {
               description="Registered pharmacies"
               bgColor="bg-gradient-to-r from-indigo-600 to-indigo-500"
               textColor="text-white"
-              link="/pharmacies"
+              link={linkFor("/pharmacies")}
             />
           </>
         )}
@@ -252,7 +278,7 @@ const Home = () => {
               description="Active consultations"
               bgColor="bg-gradient-to-r from-teal-600 to-teal-500"
               textColor="text-white"
-              link="/appointments/ongoing"
+              link={linkFor("/appointments/ongoing")}
             />
             <StatCard
               icon={<BsClockHistory className="text-black text-2xl" />}
@@ -261,7 +287,7 @@ const Home = () => {
               description="Awaiting confirmation"
               bgColor="bg-gradient-to-r from-yellow-600 to-yellow-500"
               textColor="text-white"
-              link="/appointments/pending"
+              link={linkFor("/appointments/pending")}
             />
             <StatCard
               icon={<FiTruck className="text-black text-2xl" />}
@@ -270,7 +296,7 @@ const Home = () => {
               description="Awaiting processing"
               bgColor="bg-gradient-to-r from-red-600 to-red-500"
               textColor="text-white"
-              link="/orders/pending"
+              link={linkFor("/orders/pending")}
             />
             <StatCard
               icon={<FiTruck className="text-black text-2xl" />}
@@ -279,19 +305,23 @@ const Home = () => {
               description="In delivery process"
               bgColor="bg-gradient-to-r from-gray-600 to-gray-500"
               textColor="text-white"
-              link="/orders/ongoing"
+              link={linkFor("/orders/ongoing")}
             />
           </>
         )}
       </div>
 
-      {/* Recent Appointments Section - Loads last */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-gray-100 dark:border-gray-700">
+      {/* Pending Appointments - admin only, since it shows patients' complaints */}
+      {role === 'admin' && (
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between gap-4 flex-wrap">
           <h2 className="text-xl font-semibold text-gray-800 dark:text-white flex items-center">
             <BsClockHistory className="mr-2 text-blue-600" />
-            Recent Appointments
+            Pending Appointments
           </h2>
+          {appointments.length > 0 && (
+            <span className="text-sm text-gray-500">{appointments.length} awaiting confirmation</span>
+          )}
         </div>
         {loading.appointments ? (
           <div className="p-6 space-y-4">
@@ -301,22 +331,50 @@ const Home = () => {
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                {/* Table headers remain the same */}
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {appointments.length > 0 ? (
-                    appointments.map((appointment) => (
-                      <tr key={appointment.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                        {/* Table cells remain the same */}
+            <div className="table-scroll">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Patient</th>
+                    <th scope="col">Doctor</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Complaint</th>
+                    <th scope="col">Time</th>
+                    <th scope="col">Date</th>
+                    <th scope="col" className="text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {appointments.length === 0 ? (
+                    <tr>
+                      <td colSpan={7}>No pending appointments</td>
+                    </tr>
+                  ) : (
+                    // Latest few only; the full list is one click away
+                    appointments.slice(0, 6).map((appointment) => (
+                      <tr key={appointment.id}>
+                        <td>
+                          <div className="flex items-center gap-2">
+                            <FiUser className="text-gray-400 shrink-0" />
+                            {appointment.patientName}
+                          </div>
+                        </td>
+                        <td>{appointment.doctorName || <span className="text-gray-400">Unassigned</span>}</td>
+                        <td>
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">
+                            <FiAlertCircle /> Pending
+                          </span>
+                        </td>
+                        <td className="max-w-xs truncate">{appointment.complain || <span className="text-gray-400">No complaint noted</span>}</td>
+                        <td className="whitespace-nowrap">{formatTimeRange(appointment.startTime, appointment.endTime)}</td>
+                        <td className="whitespace-nowrap">{formatDate(appointment.startTime)}</td>
+                        <td className="text-right">
+                          <Link href={`/appointments/details/${appointment.id}`} className="table-action">
+                            <FiEye /> View
+                          </Link>
+                        </td>
                       </tr>
                     ))
-                  ) : (
-                    <tr>
-                      <td colSpan={7} className="px-6 py-4 text-center text-gray-500 dark:text-gray-300">
-                        No appointments found
-                      </td>
-                    </tr>
                   )}
                 </tbody>
               </table>
@@ -324,16 +382,17 @@ const Home = () => {
             {appointments.length > 0 && (
               <div className="px-6 py-3 border-t border-gray-100 dark:border-gray-700 text-right">
                 <Link
-                  href="/appointments"
+                  href="/appointments/pending"
                   className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                 >
-                  View all appointments →
+                  View all pending appointments →
                 </Link>
               </div>
             )}
           </>
         )}
       </div>
+      )}
     </div>
   );
 };

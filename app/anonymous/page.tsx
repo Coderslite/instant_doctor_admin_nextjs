@@ -57,25 +57,25 @@ const AnonymousList = () => {
                         <FaSpinner className="animate-spin text-4xl text-blue-500" />
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full bg-white">
+                    <div className="table-card">
+                        <table className="data-table">
                             <thead>
-                                <tr className="border-b">
-                                    <th className="py-3 px-4 text-left">Question</th>
-                                    <th className="py-3 px-4 text-left">Status</th>
-                                    <th className="py-3 px-4 text-left">Date</th>
-                                    <th className="py-3 px-4 text-left">Action</th>
+                                <tr>
+                                    <th>Question</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {filteredMessages.map((message) => (
-                                    <tr key={message.id} className="border-b hover:bg-gray-50">
-                                        <td className="py-3 px-4">
+                                    <tr key={message.id}>
+                                        <td>
                                             {message.question.length > 50
                                                 ? `${message.question.substring(0, 50)}...`
                                                 : message.question}
                                         </td>
-                                        <td className="py-3 px-4">
+                                        <td>
                                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${message.status === 'completed'
                                                 ? 'bg-green-100 text-green-800'
                                                 : 'bg-orange-100 text-orange-800'
@@ -83,11 +83,11 @@ const AnonymousList = () => {
                                                 {message.status.toUpperCase()}
                                             </span>
                                         </td>
-                                        <td className="py-3 px-4">
+                                        <td>
                                             {new Date(message.createdAt).toLocaleDateString()}
                                         </td>
-                                        <td className="py-3 px-4">
-                                            <Link href={`/anonymous/${message.id}`} className='inline-flex items-center bg-blue-500 text-white px-3 py-1 rounded-lg text-sm'><FaEye className="mr-1" /> View</Link>
+                                        <td>
+                                            <Link href={`/anonymous/${message.id}`} className="table-action"><FaEye className="mr-1" /> View</Link>
                                         </td>
                                     </tr>
                                 ))}

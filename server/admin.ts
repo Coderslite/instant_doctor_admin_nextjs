@@ -5,6 +5,12 @@ import { UserModel } from "@/app/model/user_model";
 import { db } from "@/firebase/clientApp";
 import { collection, getDocs, query, where } from "firebase/firestore";
 
+// Firestore values may be stored as strings or be missing; coerce safely
+const toNumber = (value: unknown) => {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
+};
+
 // Get total pharmacy earnings from completed orders (sum of all item amounts)
 export async function getTotalPharmacyEarnings() {
     const ordersRef = collection(db, "Orders");
@@ -15,27 +21,31 @@ export async function getTotalPharmacyEarnings() {
     snapshot.forEach(doc => {
         const order = doc.data() as OrderModel;
         // Sum up all items in the order (excluding delivery fee)
-        const orderTotal = order.items.reduce((sum, item) => sum + (item.amount * item.quantity), 0);
+        const orderTotal = (order.items ?? []).reduce(
+            (sum, item) => sum + toNumber(item.amount) * toNumber(item.quantity),
+            0
+        );
         total += orderTotal;
     });
 
     return total;
 }
 
-// Get total doctor earnings from completed appointments
+// Get total doctor earnings (NGN) from paid appointments.
+// Appointments never reach a "completed" status (only pending/active/deleted),
+// so isPaid is the signal. Trials are free and other currencies are skipped
+// so they aren't summed as naira.
 export async function getTotalDoctorEarnings() {
     const appointmentsRef = collection(db, "Appointments");
-    const completedAppointmentsQuery = query(
-        appointmentsRef,
-        where("status", "==", "completed"),
-        where("isPaid", "==", true)
-    );
-    const snapshot = await getDocs(completedAppointmentsQuery);
+    const paidAppointmentsQuery = query(appointmentsRef, where("isPaid", "==", true));
+    const snapshot = await getDocs(paidAppointmentsQuery);
 
     let total = 0;
     snapshot.forEach(doc => {
-        const appointment = doc.data() as AppointmentModel;
-        total += appointment.price || 0;
+        const appointment = doc.data() as AppointmentModel & { currency?: string; isTrial?: boolean };
+        if (appointment.isTrial) return;
+        if (appointment.currency && appointment.currency !== "NGN") return;
+        total += toNumber(appointment.price);
     });
 
     return total;
@@ -49,7 +59,7 @@ export async function getTotalPharmacyBalances() {
     let total = 0;
     snapshot.forEach(doc => {
         const data = doc.data() as PharmacyModel;
-        total += data.balance || 0;
+        total += toNumber(data.balance);
     });
 
     return total;
@@ -63,7 +73,7 @@ export async function getTotalDoctorBalances() {
     let total = 0;
     snapshot.forEach(doc => {
         const data = doc.data() as UserModel;
-        total += data.amount || 0;
+        total += toNumber(data.balance ?? data.amount);
     });
 
     return total;

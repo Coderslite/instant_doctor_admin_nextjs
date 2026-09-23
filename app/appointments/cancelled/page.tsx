@@ -98,54 +98,54 @@ const CancelledAppointments = () => {
                 </div>
             </div>
 
-            <div className="w-full overflow-x-auto">
-                <table className="min-w-full text-sm text-left text-gray-500">
-                    <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+            <div className="table-card">
+                <table className="data-table">
+                    <thead>
                         <tr>
-                            <th scope="col" className="px-4 py-3">Patient</th>
-                            <th scope="col" className="px-4 py-3">Doctor</th>
-                            <th scope="col" className="px-4 py-3">Status</th>
-                            <th scope="col" className="px-4 py-3">Complaint</th>
-                            <th scope="col" className="px-4 py-3">Time</th>
-                            <th scope="col" className="px-4 py-3">Date</th>
-                            <th scope="col" className="px-4 py-3">Action</th>
+                            <th scope="col">Patient</th>
+                            <th scope="col">Doctor</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Complaint</th>
+                            <th scope="col">Time</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredAppointments.length === 0 ? (
-                            <tr className="bg-white border-b">
-                                <td colSpan={7} className="px-4 py-4 text-center">
+                            <tr>
+                                <td colSpan={7} className="text-center">
                                     {searchTerm ? 'No matching appointments found' : 'No Cancelled appointments yet'}
                                 </td>
                             </tr>
                         ) : (
                             filteredAppointments.map((appointment) => (
-                                <tr key={appointment.id} className="bg-white border-b hover:bg-gray-50">
-                                    <td className="px-4 py-4 font-medium text-gray-900">
+                                <tr key={appointment.id}>
+                                    <td className="font-medium text-gray-900">
                                         <div className="flex items-center">
                                             <FiUser className="mr-2 text-gray-400" />
                                             {appointment.patientName}
                                         </div>
                                     </td>
-                                    <td className="px-4 py-4">
+                                    <td>
                                         {appointment.doctorName || 'Unassigned'}
                                     </td>
-                                    <td className="px-4 py-4">
+                                    <td>
                                         <span className='bg-yellow-100 text-yellow-800 rounded-full px-3 py-1 text-xs flex items-center w-fit'>
                                             <FiAlertCircle className="mr-1" /> Cancelled
                                         </span>
                                     </td>
-                                    <td className="px-4 py-4 max-w-xs truncate">
+                                    <td className="max-w-xs truncate">
                                         {appointment.complain || 'No complaint noted'}
                                     </td>
-                                    <td className="px-4 py-4">
+                                    <td>
                                         {formatTimeRange(appointment.startTime, appointment.endTime)}
                                     </td>
-                                    <td className="px-4 py-4">{formatDate(appointment.startTime)}</td>
-                                    <td className="px-4 py-4">
+                                    <td>{formatDate(appointment.startTime)}</td>
+                                    <td>
                                         <Link
                                             href={`/appointments/details/${appointment.id}`}
-                                            className='inline-flex items-center bg-blue-500 text-white px-3 py-1 rounded-lg text-sm'
+                                            className="table-action"
                                         >
                                             <FiEye className="mr-1" /> View
                                         </Link>

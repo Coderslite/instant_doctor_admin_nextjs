@@ -23,7 +23,7 @@ export default function RootLayout({
   const isAuthPage = pathname?.startsWith('/login');
   return (
     <html lang="en" data-theme="light" className="w-full h-full">
-      <body className="w-full h-full">
+      <body className="w-full h-full" suppressHydrationWarning>
         <FlowbiteInitializer />
         <ToastContainer />
         <div className="flex w-full min-h-screen">
@@ -31,7 +31,7 @@ export default function RootLayout({
           {isAuthPage ? ('') : (<Sidebar />)}
 
           {/* Main content */}
-          <main className="flex-1 w-full p-4 bg-white dark:bg-black">
+          <main className="flex-1 min-w-0 w-full p-4 bg-white dark:bg-black">
             {children}
           </main>
         </div>

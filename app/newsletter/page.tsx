@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { getAllUsers } from "@/server/user";
+import { MAIL_API_URL } from "@/utils/mailApi";
 
 export default function NewsletterPage() {
   const [subject, setSubject] = useState("");
@@ -54,7 +55,7 @@ export default function NewsletterPage() {
 
       // 🔹 Send to backend
       const response = await fetch(
-        "http://localhost:3003/mail/newsletter",
+        `${MAIL_API_URL}/mail/newsletter`,
         // "https://us-central1-instant-doctor-a4e4c.cloudfunctions.net/api/mail/newsletter",
         {
           method: "POST",

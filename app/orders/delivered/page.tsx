@@ -83,45 +83,45 @@ const DeliveredOrders = () => {
                 </div>
             </div>
 
-            <div className="w-full overflow-x-auto">
-                <table className="min-w-full text-sm text-left text-gray-500">
-                    <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+            <div className="table-card">
+                <table className="data-table">
+                    <thead>
                         <tr>
-                            <th scope="col" className="px-4 py-3">Pharmacy</th>
-                            <th scope="col" className="px-4 py-3">Products</th>
-                            <th scope="col" className="px-4 py-3">Status</th>
-                            <th scope="col" className="px-4 py-3">Amount</th>
-                            <th scope="col" className="px-4 py-3">Date</th>
-                            <th scope="col" className="px-4 py-3">Order ID</th>
-                            <th scope="col" className="px-4 py-3">Action</th>
+                            <th scope="col">Pharmacy</th>
+                            <th scope="col">Products</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Amount</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Order ID</th>
+                            <th scope="col">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredOrders.length === 0 ? (
-                            <tr className="bg-white border-b">
-                                <td colSpan={6} className="px-4 py-4 text-center">
+                            <tr>
+                                <td colSpan={6} className="text-center">
                                     {searchTerm ? 'No matching orders found' : 'No delivered orders yet'}
                                 </td>
                             </tr>
                         ) : (
                             filteredOrders.map((order) => (
-                                <tr key={order.id} className="bg-white border-b hover:bg-gray-50">
-                                    <td className="px-4 py-4 font-medium text-gray-900">{order.pharmacyName}</td>
-                                    <td className="px-4 py-4 font-medium text-gray-900">
+                                <tr key={order.id}>
+                                    <td className="font-medium text-gray-900">{order.pharmacyName}</td>
+                                    <td className="font-medium text-gray-900">
                                         {order.items.length} {order.items.length === 1 ? 'Item' : 'Items'}
                                     </td>
-                                    <td className="px-4 py-4">
+                                    <td>
                                         <span className='bg-green-100 text-green-800 rounded-full px-3 py-1 text-xs flex items-center w-fit'>
                                             <FiClock className="mr-1" /> Delivered
                                         </span>
                                     </td>
-                                    <td className="px-4 py-4">NGN{order.totalAmount.toLocaleString()}</td>
-                                    <td className="px-4 py-4">{formatDate(order.createdAt)}</td>
-                                    <td className="px-4 py-4 font-mono">{order.id.slice(0, 8)}</td>
-                                    <td className="px-4 py-4">
+                                    <td>NGN{order.totalAmount.toLocaleString()}</td>
+                                    <td>{formatDate(order.createdAt)}</td>
+                                    <td className="font-mono">{order.id.slice(0, 8)}</td>
+                                    <td>
                                         <Link
                                             href={`/orders/details/${order.id}`}
-                                            className='inline-flex items-center bg-blue-500 text-white px-3 py-1 rounded-lg text-sm'
+                                            className="table-action"
                                         >
                                             <FiEye className="mr-1" /> View
                                         </Link>

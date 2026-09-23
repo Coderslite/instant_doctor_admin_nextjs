@@ -121,33 +121,33 @@ const HealthTips = () => {
       </div>
 
       {/* Table */}
-      <div className="w-full overflow-x-auto">
-        <table className="min-w-full text-sm text-left text-gray-500">
-          <thead className="text-xs text-gray-700 uppercase bg-gray-100">
+      <div className="table-card">
+        <table className="data-table">
+          <thead>
             <tr>
-              <th className="px-4 py-3">#</th>
-              <th className="px-4 py-3">Image</th>
-              <th className="px-4 py-3">Title</th>
-              <th className="px-4 py-3">Category</th>
-              <th className="px-4 py-3">Type</th>
-              <th className="px-4 py-3">Date</th>
-              <th className="px-4 py-3 text-center">Actions</th>
+              <th>#</th>
+              <th>Image</th>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Type</th>
+              <th>Date</th>
+              <th className="text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
             {currentTips.length === 0 ? (
-              <tr className="bg-white border-b">
-                <td colSpan={7} className="px-4 py-4 text-center">
+              <tr>
+                <td colSpan={7} className="text-center">
                   {searchTerm ? 'No matching health tips found' : 'No health tips yet'}
                 </td>
               </tr>
             ) : (
               currentTips.map((tip, index) => (
-                <tr key={tip.id} className="bg-white border-b hover:bg-gray-50">
-                  <td className="px-4 py-4 font-medium text-gray-900">
+                <tr key={tip.id}>
+                  <td className="font-medium text-gray-900">
                     {(currentPage - 1) * tipsPerPage + index + 1}
                   </td>
-                  <td className="px-4 py-4">
+                  <td>
                     {tip.image ? (
                       <Image
                         src={tip.image}
@@ -160,14 +160,14 @@ const HealthTips = () => {
                       <span className="text-gray-400 italic">No Image</span>
                     )}
                   </td>
-                  <td className="px-4 py-4">{tip.title}</td>
-                  <td className="px-4 py-4">{getCategoryName(tip.categoryId)}</td>
-                  <td className="px-4 py-4 capitalize">{tip.type}</td>
-                  <td className="px-4 py-4">{formatDate(tip.createdAt)}</td>
-                  <td className="px-4 py-4 text-center flex justify-center gap-2">
+                  <td>{tip.title}</td>
+                  <td>{getCategoryName(tip.categoryId)}</td>
+                  <td className="capitalize">{tip.type}</td>
+                  <td>{formatDate(tip.createdAt)}</td>
+                  <td className="text-center flex justify-center gap-2">
                     <Link
                       href={`/healthtips/${tip.id}`}
-                      className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-xs"
+                      className="table-action"
                     >
                       View
                     </Link>
